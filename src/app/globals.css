@@ -125,7 +125,7 @@ body {
   justify-content: center;
   gap: 2rem;
 }
-.buttons button{
+.buttons button, .descargar-btn{
   color: white;
   padding: 0.8rem 2rem;
   font-size: 1rem;
@@ -150,24 +150,30 @@ body {
   box-shadow: 0 4px 6px rgba(192, 57, 43, 0.4);
 }
 
-.calcular-btn {
+.calcular-btn, .descargar-btn {
   background-color: #27ae60;
   box-shadow: 0 4px 6px rgba(39, 174, 96, 0.4);
 }
-.calcular-btn:hover {
+.calcular-btn:hover, .descargar-btn:hover {
   background-color: #2ecc71;
   transform: translateY(-3px);
   box-shadow: 0 8px 15px rgba(46, 204, 113, 0.6);
 }
-.calcular-btn:active {
+.calcular-btn:active, .descargar-btn:active {
   background-color: #27ae60;
   transform: translateY(0);
   box-shadow: 0 4px 6px rgba(39, 174, 96, 0.4);
 }
 
+.descargar-btn {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
 hr {
   height: 2px;
-  background-color: #2c3e50; /* o el color que quieras */
+  background-color: #2c3e50;
   margin: 1rem 0;
 }
 
@@ -218,6 +224,7 @@ hr {
   .calculadora-body {
     flex-direction: column;
   }
+}
 
   .calculadora-left,
   .calculadora-right {
@@ -225,4 +232,3 @@ hr {
     border-right: none;
     border-bottom: 1px solid #ccc;
   }
-}

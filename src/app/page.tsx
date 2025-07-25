@@ -1,26 +1,42 @@
 "use client";
 import Image from 'next/image';
 import Link from 'next/link';
+
 import { useState } from "react";
+import { generarPDF } from './utils/creadorpdf';
 
 export default function HomePage() {
 
-  const [materialPoste, setMaterialPoste] = useState("quebracho");
-  const [alturaRolloTejido, setAlturaRolloTejido] = useState("1m");
-  const [tipoHormigon, setTipoHormigon] = useState("olimpico");
+    const initialFormData = {
+    materialPoste: "hormigon",
+    tipoHormigon: "olimpico",
+    alturaRolloTejido: "Tejido romboidal 1mts",
+    grosorAlambre: "",
+    cantidadLineasPuas: "",
+    cantidadEsquineros: "",
+    cantidadRefuerzos: "",
+    cantidadIntermedios: "",
+    cantidadPuntales: "",
+    metrosLineales: "",
+    cantidadPlanchuelas: "",
+    medidaPlanchuela: "",
+    cantidadTorniquetes: "",
+    tipoTorniquete: "",
+    cantidadAlambres: "",
+    tipoAlambre: "",
+    cantidadGanchos: "",
+    tipoGancho: "",
+  };
+  const [formData, setFormData] = useState(initialFormData);
 
-  const handleMaterialPosteChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setMaterialPoste(event.target.value);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAlturaChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-  setAlturaRolloTejido(event.target.value);
+  const handleLimpiar = () => {
+    setFormData(initialFormData);
   };
-
-  const handleTipoHormigonChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setTipoHormigon(event.target.value);
-  };
-
 
   return (
     <>
@@ -47,21 +63,22 @@ export default function HomePage() {
         </div>
 
         <div className="calculadora-body">
+          
           <div className="calculadora-left">
             <div className="calculadora-left-background">
+              <form>
+                <div className="campo">
+                  <label htmlFor="materialPoste">Material del poste</label>
+                  <select name="materialPoste" value={formData.materialPoste} onChange={handleChange}>
+                    <option value="quebracho">Quebracho</option>
+                    <option value="hormigon">Hormigón</option>
+                  </select>
+                </div>
 
-              <div className="campo">
-                <label htmlFor="materialPoste">Material del poste</label>
-                <select id="materialPoste" name="materialPoste" onChange={handleMaterialPosteChange} value={materialPoste}>
-                  <option value="quebracho">Quebracho</option>
-                  <option value="hormigon">Hormigón</option>
-                </select>
-              </div>
-
-              {materialPoste === "hormigon" && (
+              {formData.materialPoste === "hormigon" && (
                 <div className="campo">
                   <label htmlFor="tipoHormigon">Tipo de Poste de Hormigón</label>
-                  <select id="tipoHormigon" name="tipoHormigon" onChange={handleTipoHormigonChange} value={tipoHormigon}>
+                  <select id="tipoHormigon" name="tipoHormigon" value={formData.tipoHormigon} onChange={handleChange}>
                     <option value="olimpico">Olimpico</option>
                     <option value="recto1.5m">Recto de 1,5mts</option>
                     <option value="recto2m">Recto de 2mts</option>
@@ -70,10 +87,10 @@ export default function HomePage() {
               )}
 
 
-              {materialPoste === "hormigon" && tipoHormigon === "olimpico" && (
+              {formData.materialPoste === "hormigon" && formData.tipoHormigon === "olimpico" && (
                 <div className="campo">
                   <label htmlFor="cantidadLineasPuas">Cantidad de lineas de puas</label>
-                  <input type="number" id="cantidadLineasPuas" name="cantidadLineasPuas"/>
+                  <input type="number" id="cantidadLineasPuas" name="cantidadLineasPuas" value={formData.cantidadLineasPuas} onChange={handleChange}/>
                 </div>
               )}
 
@@ -83,22 +100,22 @@ export default function HomePage() {
 
               <div className="campo">
                 <label htmlFor="cantidadEsquineros">Cantidad de Esquineros</label>
-                <input type="number" id="cantidadEsquineros" name="cantidadEsquineros"/>
+                <input type="number" id="cantidadEsquineros" name="cantidadEsquineros" value={formData.cantidadEsquineros} onChange={handleChange}/>
               </div>
 
               <div className="campo">
                 <label htmlFor="cantidadRefuerzos">Cantidad de Refuerzos</label>
-                <input type="number" id="cantidadRefuerzos" name="cantidadRefuerzos"/>
+                <input type="number" id="cantidadRefuerzos" name="cantidadRefuerzos" value={formData.cantidadRefuerzos} onChange={handleChange}/>
               </div>
 
               <div className="campo">
                 <label htmlFor="cantidadIntermedios">Cantidad de Intermedios</label>
-                <input type="number" id="cantidadIntermedios" name="cantidadIntermedios"/>
+                <input type="number" id="cantidadIntermedios" name="cantidadIntermedios" value={formData.cantidadIntermedios} onChange={handleChange}/>
               </div>
 
               <div className="campo">
                 <label htmlFor="cantidadPuntales">Cantidad de Puntales</label>
-                <input type="number" id="cantidadPuntales" name="cantidadPuntales"/>
+                <input type="number" id="cantidadPuntales" name="cantidadPuntales" value={formData.cantidadPuntales} onChange={handleChange}/>
               </div>
 
 
@@ -107,29 +124,29 @@ export default function HomePage() {
 
               <div className="campo">
                 <label htmlFor="alturaRolloTejido">Altura del rollo de tejido</label>
-                <select id="alturaRolloTejido" name="alturaRolloTejido" onChange={handleAlturaChange} value={alturaRolloTejido}>
-                  <option value="1m">1m</option>
-                  <option value="1,25m">1,25m</option>
-                  <option value="1,5m">1,5m</option>
-                  <option value="1,8m">1,8m</option>
-                  <option value="2m">2m</option>
+                <select id="alturaRolloTejido" name="alturaRolloTejido" value={formData.alturaRolloTejido} onChange={handleChange}>
+                  <option value="Tejido romboidal 1mts">Tejido romboidal 1mts</option>
+                  <option value="Tejido romboidal 1,25mts">Tejido romboidal 1,25mts</option>
+                  <option value="Tejido romboidal 1,5mts">Tejido romboidal 1,5mts</option>
+                  <option value="Tejido romboidal 1,8mts">Tejido romboidal 1,8mts</option>
+                  <option value="Tejido romboidal 2mts">Tejido romboidal 2mts</option>
                 </select>
               </div>
 
-              {["1m", "1,25m", "1,8m"].includes(alturaRolloTejido) && (
+              {["Tejido romboidal 1mts", "Tejido romboidal 1,25mts", "Tejido romboidal 1,8mts"].includes(formData.alturaRolloTejido) && (
               <div className="campo">
                 <label htmlFor="grosorAlambre">Diámetro o grosor del alambre</label>
-                <select id="grosorAlambre" name="grosorAlambre">
+                <select id="grosorAlambre" name="grosorAlambre" value={formData.grosorAlambre} onChange={handleChange}>
                   <option value="2,5pulgadas">2,5 pulgadas</option>
                 </select>
               </div>
               )}
-              {["1,5m", "2m"].includes(alturaRolloTejido) && (
+              {["Tejido romboidal 1,5mts", "Tejido romboidal 2mts"].includes(formData.alturaRolloTejido) && (
               <div className="campo">
                 <label htmlFor="grosorAlambre">Diámetro o grosor del alambre</label>
-                <select id="grosorAlambre" name="grosorAlambre">
-                  <option value="2pulgadas">2 pulgadas</option>
-                  <option value="2,5pulgadas">2,5 pulgadas</option>
+                <select id="grosorAlambre" name="grosorAlambre" value={formData.grosorAlambre} onChange={handleChange}>
+                  <option value="2 pulgadas">2 pulgadas</option>
+                  <option value="2,5 pulgadas">2,5 pulgadas</option>
                 </select>
               </div>
               )}
@@ -137,18 +154,18 @@ export default function HomePage() {
 
               <div className="campo">
                 <label htmlFor="metrosLineales">Metros lineales</label>
-                <input type="number" id="metrosLineales" name="metrosLineales" min="1" placeholder="Ej: 10mts"/>
+                <input type="number" id="metrosLineales" name="metrosLineales" min="1" placeholder="Ej: 10mts" value={formData.metrosLineales} onChange={handleChange}/>
               </div>
 
               <hr/>
 
               <div className="campo">
-                <label htmlFor="planchuelas">Cantidad de Planchuelas Galvanizadas</label>
-                <input type="number" id="planchuelas" name="planchuelas" min="1" />
+                <label htmlFor="cantidadPlanchuelas">Cantidad de Planchuelas Galvanizadas</label>
+                <input type="number" id="cantidadPlanchuelas" name="cantidadPlanchuelas" min="1" value={formData.cantidadPlanchuelas} onChange={handleChange}/>
               </div>
               <div className="campo">
                 <label htmlFor="medidaPlanchuela">Medida de Planchuelas</label>
-                <select id="medidaPlanchuela" name="medidaPlanchuela">
+                <select id="medidaPlanchuela" name="medidaPlanchuela" value={formData.medidaPlanchuela} onChange={handleChange}>
                   <option value="1m">1m</option>
                   <option value="1,25m">1,25m</option>
                   <option value="1,5m">1,5m</option>
@@ -160,14 +177,14 @@ export default function HomePage() {
               <hr/>
 
               <div className="campo">
-                <label htmlFor="torniquetes">Cantidad de Torniquetes</label>
-                <input type="number" id="torniquetes" name="torniquetes" min="1" />
+                <label htmlFor="cantidadTorniquetes">Cantidad de Torniquetes</label>
+                <input type="number" id="cantidadTorniquetes" name="cantidadTorniquetes" min="1" value={formData.cantidadTorniquetes} onChange={handleChange} />
               </div>
               <div className="campo">
                 <label htmlFor="tipoTorniquete">Torniquetes</label>
-                <select id="tipoTorniquete" name="tipoTorniquete">
-                  <option value="N5">N°5</option>
-                  <option value="N7">N°7</option>
+                <select id="tipoTorniquete" name="tipoTorniquete" value={formData.tipoTorniquete} onChange={handleChange}>
+                  <option value="N5">Torniquete galvanizado Nro 5</option>
+                  <option value="N7">Torniquete galvanizado Nro 7</option>
                 </select>
               </div>
 
@@ -176,13 +193,13 @@ export default function HomePage() {
 
 
               <div className="campo">
-                <label htmlFor="alambres">Metros lineales de Alambre</label>
-                <input type="number" id="alambres" name="alambres" min="1" />
+                <label htmlFor="cantidadAlambres">Metros lineales de Alambre</label>
+                <input type="number" id="cantidadAlambres" name="cantidadAlambres" min="1" value={formData.cantidadAlambres} onChange={handleChange} />
               </div>
               <div className="campo">
                 <label htmlFor="tipoAlambre">Tipo de alambre</label>
-                <select id="tipoAlambre" name="tipoAlambre">
-                  <option value="lisoGalvanizado">Liso Galvanizado</option>
+                <select id="tipoAlambre" name="tipoAlambre" value={formData.tipoAlambre} onChange={handleChange}>
+                  <option value="lisoGalvanizado">Alambre Liso Galvanizado</option>
                 </select>
               </div>
 
@@ -191,12 +208,12 @@ export default function HomePage() {
 
 
               <div className="campo">
-                <label htmlFor="ganchos">Cantidad de ganchos</label>
-                <input type="number" id="ganchos" name="ganchos" min="1" />
+                <label htmlFor="cantidadGanchos">Cantidad de ganchos</label>
+                <input type="number" id="cantidadGanchos" name="cantidadGanchos" min="1" value={formData.cantidadGanchos} onChange={handleChange} />
               </div>
               <div className="campo">
                 <label htmlFor="tipoGancho">Tipo de gancho</label>
-                <select id="tipoGancho" name="tipoGancho">
+                <select id="tipoGancho" name="tipoGancho" value={formData.tipoGancho} onChange={handleChange}>
                   <option value="tor7">TOR.T/ALAMBRE x7</option>
                   <option value="tor8">TOR.T/ALAMBRE x8</option>
                   <option value="palomita">Palomita Galvanizada</option>
@@ -204,21 +221,26 @@ export default function HomePage() {
                   <option value="esparrago360">Esparrago Galvanizado de 360mm</option>
                 </select>
               </div>
+              </form>
 
 
               <div className="buttons">
-                <button className="limpiar-btn">Limpiar</button>
+                <button className="limpiar-btn" onClick={handleLimpiar}>Limpiar</button>
                 <button className="calcular-btn">Calcular</button>
               </div>
             </div>
           </div>
 
+
           <div className="calculadora-right">
             <div className="calculadora-right-background">
-              <h3>Resumen de cotización</h3>
-              <p>Completa el formulario para ver el presupuesto.</p>
+              <h3>Resumen de cotización</h3>  
+              <p>Completa el formulario y presiona "Calcular" para ver el presupuesto.</p>
               <hr />
-            </div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+                <button className="descargar-btn" onClick={() => generarPDF("Cliente XYZ")}>Descargar PDF</button>
+              </div>    
+            </div> 
           </div>
         </div>
       </section>
