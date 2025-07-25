@@ -1,9 +1,12 @@
 "use client";
 import Image from 'next/image';
 import Link from 'next/link';
+import { db } from "../lib/firebase"; 
+import { collection, addDoc } from "firebase/firestore";
 
 import { useState } from "react";
 import { generarPDF } from './utils/creadorpdf';
+
 
 export default function HomePage() {
 
@@ -226,7 +229,7 @@ export default function HomePage() {
 
               <div className="buttons">
                 <button className="limpiar-btn" onClick={handleLimpiar}>Limpiar</button>
-                <button className="calcular-btn">Calcular</button>
+                <button className="calcular-btn" >Calcular</button>
               </div>
             </div>
           </div>
@@ -238,7 +241,7 @@ export default function HomePage() {
               <p>Completa el formulario y presiona "Calcular" para ver el presupuesto.</p>
               <hr />
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-                <button className="descargar-btn" onClick={() => generarPDF("Cliente XYZ")}>Descargar PDF</button>
+                <button className="descargar-btn" onClick={() => generarPDF("Agustina Selaya")}>Descargar PDF</button>
               </div>    
             </div> 
           </div>
