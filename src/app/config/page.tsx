@@ -1,58 +1,66 @@
+'use client';
+import './globals.css';
 import Image from 'next/image';
 import Link from 'next/link';
-import './config.css';
-
+import { auth } from "@/firebase/config";
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export default function ConfigPage() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login'); // o a la ruta de login
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
+
   return (
     <>
       {/* HEADER */}
       <header className="main-header">
-        <div className="marca">
-          <Link href="/">
-            <Image src="/images/prix_img.jpeg" alt="titulo" width={100} height={100} unoptimized/>
-          </Link>
-        </div>
-        <div className="iconos-header">
-          <Link href="/">
-            <Image src="/images/presupuesto_img.png" alt="Presupuesto" width={30} height={30} unoptimized/>
-            Presupuesto
-          </Link>
-        </div>
+        <Image src="/images/prix_img.jpeg" alt="Prix Image" width={200} height={100} />
+        <nav className="main-nav">
+          <Link href="/dashboard">Presupuestador</Link>
+          <Link href="/config">Configuración</Link>
+        </nav>
       </header>
 
-      {/* CALCULADORA */}
-
-      <section className="configuracion">
-
-        <div className="configuracion-header">
-          <h1>Configuración</h1>
-          <h3>Productos, precios, medidas</h3>
+      {/* MAIN CONTENT */}
+      <div className="wrapper">
+        <div className="title-container">
+          <h1 className="title-text">Configuración</h1>
         </div>
 
-        <div className="producto">
+        <div className="config-container">
+          <h1 className="categoria-title">Seleccionar categoría de productos</h1>
+          <select id="categoria">
+            <option value="postes">Postes</option>
+            <option value="tejidos">Tejidos</option>
+            <option value="puertasPortones">Puertas y portones</option>
+            <option value="otros">
+              Otros (Ganchos, Torniquetes, Planchuelas, Alambres, Concertinas, Resistencias, etc)
+            </option>
+          </select>
 
-          <p>Postes</p>
-          <div id="postes-container">
-            <div className="poste">
-              <input type="text" placeholder="Tipo de Poste" className="poste-tipo" />
-              <input type="number" placeholder="Precio" className="poste-precio" />
-                <button className="eliminar-btn">Eliminar</button>
+          <div id="productos">
+            <h2>Lista de productos:</h2>
+            <div id="lista">
+              <div className="producto">Producto1</div>
             </div>
           </div>
-          <button className="agregar-btn">Agregar Poste</button>
-
         </div>
+      </div>
 
-
-      </section>
-
-      <button className="logout-btn">Cerrar sesión</button>
-
-      {/* FOOTER */}
-      <footer className="main-footer">
-        <p>&copy; Alambrados Prix.</p>
-      </footer>
+      {/* FINAL BODY */}
+      <div className="final-body">
+        <button onClick={handleLogout} className="boton-cerrarSesion">
+          Cerrar sesión
+        </button>
+      </div>
     </>
   );
 }

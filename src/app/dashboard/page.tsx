@@ -1,3 +1,5 @@
+import './globals.css';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import BuscadorProductos from '@/components/BuscadorProductos';
@@ -12,7 +14,7 @@ export default function HomePage() {
         <Image src="/images/prix_img.jpeg" alt="Prix" width={300} height={80} priority />
         <nav className="main-nav">
           <Link href="/">Presupuestador</Link>
-          <Link href="/config/config">Configuración</Link>
+          <Link href="/config">Configuración</Link>
         </nav>
       </header>
 
