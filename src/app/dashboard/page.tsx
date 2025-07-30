@@ -5,6 +5,9 @@ import Link from 'next/link';
 import BuscadorProductos from '@/components/BuscadorProductos';
 import PresupuestoChart from '@/components/PresupuestoChart';
 import FechaActual from '@/components/FechaActual';
+import ActualizacionesList from '@/components/ActualizacionesList';
+
+
 
 export default function HomePage() {
   return (
@@ -32,7 +35,7 @@ export default function HomePage() {
       <div className="metrics-container">
         <div className="actualizaciones">
           <h2>Últimas Actualizaciones</h2>
-          <div className="actualizaciones-list"></div>
+          <ActualizacionesList />
         </div>
 
         <div className="presupuestos">

@@ -1,4 +1,5 @@
 "use client";
+import './globals.css';
 import React, { useState, FormEvent } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase/config";
@@ -28,26 +29,53 @@ export default function LoginPage() {
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <input
-        type="email"
-        placeholder="Correo electrónico"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
+    <div className="container">
 
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
+      <div className="left">
+        <div className="titulo">
+          <h1>Alambrados Prix</h1>
+          <p>Ingrese su usuario y contraseña para continuar</p>
+        </div>
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Ingresando..." : "Ingresar"}
-      </button>
-    </form>
+        <form className="login" onSubmit={handleLogin}>
+
+          <div className="input-container">
+            <label htmlFor="email">Correo electrónico</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder="Ingrese su correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="input-container">
+            <label htmlFor="password">Contraseña</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              placeholder="Ingrese su contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button className="login-btn" type="submit" disabled={loading}>
+            {loading ? "Ingresando..." : "Ingresar"}
+          </button>
+
+        </form>
+      </div>
+
+      <div className="right">
+        {/* Aquí puedes poner alguna imagen o contenido decorativo */}
+      </div>
+
+    </div>
   );
 }

@@ -1,21 +1,24 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { generarPDF } from './DescargarTipoFacturaPDF';
-
-const productosBase = [
-  { nombre: "Tejido Romboidal - 56mm - Malla 2'' - Espesor 11 (2,95mm) - x 10mts (PUNTA CERRADA)", precio: 14500 },
-  { nombre: "POSTE-INTERMEDIO-RECTO-HORMIGÓN (PARA TEJIDO DE 1.50 ALTO)", precio: 13200 },
-  { nombre: "Poste-Intermedio-Recto-Hormigón (Para Tejido de 1.50 Alto)''", precio: 351552 },
-  { nombre: "Torniquete galvanizado 1/4\"", precio: 120 },
-  { nombre: "Paloma de alambre reforzada", precio: 80 },
-  { nombre: "Puerta reforzada 2 hojas 3m", precio: 75400 },
-  { nombre: "Planchela con agujeros galvanizada", precio: 540 }
-];
+import { useState, useEffect } from "react";
+import { generarPDF } from "./DescargarTipoFacturaPDF";
+import { obtenerDocumentosDeColeccion } from "@/app/utils/firestoreUtils";
 
 export default function BuscadorProductos() {
   const [busqueda, setBusqueda] = useState('');
   const [seleccionados, setSeleccionados] = useState<any[]>([]);
+  const costoTotal = seleccionados.reduce((total, producto) => {
+  return total + producto.precioUnitario * producto.cantidad;
+  }, 0);
+  const [productosBase, setProductosBase] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchProductos = async () => {
+      const productos = await obtenerDocumentosDeColeccion("productos");
+      setProductosBase(productos);
+    };
+    fetchProductos();
+  }, []);
 
   const resultados = busqueda.length > 0
     ? productosBase.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()))
@@ -57,7 +60,7 @@ export default function BuscadorProductos() {
         {resultados.length === 0 && busqueda.length > 0 && <div className="item">No se encontraron productos</div>}
         {resultados.map((p, i) => (
           <div key={i} className="item" onClick={() => agregarProducto(p)}>
-            {p.nombre} - ${p.precio.toLocaleString()}
+            {p.nombre} - ${p.precioUnitario.toLocaleString()}
           </div>
         ))}
       </div>
@@ -67,21 +70,23 @@ export default function BuscadorProductos() {
         <div id="lista">
           {seleccionados.map((p, i) => (
             <div key={i} className="producto-seleccionado">
-              <div>{p.nombre} - ${p.precio.toLocaleString()}</div>
-              <input
-                type="number"
-                min={1}
-                value={p.cantidad}
-                className="cantidad-input"
-                style={{ margin: '10px' }}
-                onChange={e => cambiarCantidad(i, parseInt(e.target.value) || 1)}
+              <div>{p.nombre} - ${p.precioUnitario.toLocaleString()}</div>
+              <input type="number" min={0} value={p.cantidad === 0 ? '' : p.cantidad} className="cantidad-input" style={{ margin: '10px' }} 
+              onChange={e => {
+              const value = e.target.value;
+              const cantidad = value === '' ? 0 : parseInt(value);
+              cambiarCantidad(i, isNaN(cantidad) ? 0 : cantidad);
+            }}
               />
               <button className="boton-eliminar" style={{ marginLeft: '10px' }} onClick={() => eliminarProducto(i)}>
                 Eliminar
               </button>
             </div>
           ))}
-
+            {/* Total al final */}
+            <div className="total-costo" style={{ marginTop: "1rem", fontWeight: "bold" }}>
+              Costo total: ${costoTotal.toFixed(2)}
+            </div>
           {seleccionados.length > 0 && (
             <div className="botones">
               <button className="boton-descargar">Descargar PDF Informativo</button>

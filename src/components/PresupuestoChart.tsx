@@ -6,6 +6,20 @@ import Chart from 'chart.js/auto';
 export default function PresupuestoChart() {
   const chartInstance = useRef<Chart | null>(null);
 
+
+  const getUltimos3Meses = (): string[] => {
+    const meses: string[] = [];
+    const formatter = new Intl.DateTimeFormat('es-AR', { month: 'long' });
+    const fecha = new Date();
+    for (let i = 2; i >= 0; i--) {
+      const f = new Date(fecha.getFullYear(), fecha.getMonth() - i, 1);
+      meses.push(formatter.format(f).charAt(0).toUpperCase() + formatter.format(f).slice(1));
+    }
+    return meses;
+  };
+
+
+
   useEffect(() => {
     const ctx = document.getElementById('graficoPresupuestos') as HTMLCanvasElement | null;
     if (!ctx) return;
@@ -14,10 +28,12 @@ export default function PresupuestoChart() {
       chartInstance.current.destroy();
     }
 
+    const labels = getUltimos3Meses();
+
     chartInstance.current = new Chart(ctx, {
-      type: 'bar', // acá cambia el tipo a 'bar' para columnas
+      type: 'bar',
       data: {
-        labels: ['Mayo', 'Junio', 'Julio'],
+        labels,
         datasets: [{
           label: 'Cantidad de Presupuestos',
           data: [12, 19, 23],
@@ -37,10 +53,7 @@ export default function PresupuestoChart() {
         },
         scales: {
           y: {
-            beginAtZero: true, // siempre empieza en 0 el eje Y
-            ticks: {
-              stepSize: 5 // para que las marcas suban de a 5, opcional
-            }
+            beginAtZero: true,
           }
         }
       }
