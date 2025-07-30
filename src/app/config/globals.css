@@ -195,6 +195,21 @@ body {
 .edit-button:hover{
   background-color: #15af62;
 }
+
+.cancel-button{
+  margin-left: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+}
+.cancel-button:hover{
+  background-color: #c0392b;
+}
+
 .input-editar {
   padding: 6px 10px;
   font-size: 14px;

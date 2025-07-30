@@ -10,6 +10,7 @@ import { obtenerDocumentosPorCampo  } from '@/app/utils/firestoreUtils';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { obtenerFechaFormateada } from '../utils/fecha';
+import { autoWidth } from '../utils/autowidth'; 
 
 export default function ConfigPage() {
   interface Producto {
@@ -77,7 +78,7 @@ const guardarCampo = async (id: string, campo: string) => {
       )
     );
 
-    // Limpiá el estado de edición
+    // cleanin'
     setCamposEditando((prev) => {
       const copia = { ...prev };
       delete copia[clave];
@@ -157,38 +158,61 @@ const guardarCampo = async (id: string, campo: string) => {
         <div key={campo} className="campo-producto" style={{ marginBottom: '0.5rem' }}>
           <span className="campo-nombre">{campo}:</span>{' '}
           {camposNoEditables.includes(campo) ? (
-            <span className="campo-valor">{String(valor)}</span> // 👈 solo mostrar valor
+            <span className="campo-valor">{String(valor)}</span>
           ) : estaEditando ? (
             <>
-              <input
-                className="input-editar"
-                type="text"
-                placeholder={String(valor)}
-                value={valoresTemporales[clave] || ''}
-                onChange={(e) =>
-                  setValoresTemporales((prev) => ({
-                    ...prev,
-                    [clave]: e.target.value,
-                  }))
-                }
-              />
+            <input
+              className="input-editar"
+              type="text"
+              placeholder={String(valor)}
+              value={valoresTemporales[clave] || ''}
+              style={{
+                width: `${autoWidth(valoresTemporales[clave] || String(valor), '16px Arial') + 20}px`,
+              }}
+              onChange={(e) =>
+                setValoresTemporales((prev) => ({
+                  ...prev,
+                  [clave]: e.target.value,
+                }))
+              }
+            />
               <button onClick={() => guardarCampo(prod.id, campo)} className="edit-button">Guardar</button>
+              {/* Botón Cancelar */}
+    <button
+      onClick={() => {
+        setCamposEditando(prev => {
+          const copia = {...prev};
+          delete copia[clave];
+          return copia;
+        });
+        setValoresTemporales(prev => {
+          const copia = {...prev};
+          delete copia[clave];
+          return copia;
+        });
+      }}
+      className="cancel-button"
+      style={{ marginLeft: '0.5rem' }}
+    >
+      Cancelar
+    </button>
             </>
           ) : (
-            <>
-              <span className="campo-valor">{String(valor)}</span>
-              <button
-                className="edit-button"
-                style={{ marginLeft: '0.5rem' }}
-                onClick={() => editarCampo(prod.id, campo, String(valor))}
-              >
-                Editar
-              </button>
-            </>
-          )}
-        </div>
-      );
-})    }
+              <>
+                <span className="campo-valor">{String(valor)}</span>
+                <button
+                  className="edit-button"
+                  style={{ marginLeft: '0.5rem' }}
+                  onClick={() => editarCampo(prod.id, campo, String(valor))}
+                >
+                  Editar
+                </button>
+              </>
+            )}
+      
+    </div>
+        );
+            })    }
                           </div>
                         )}
                       </div>
