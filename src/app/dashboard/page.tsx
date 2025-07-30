@@ -6,11 +6,13 @@ import BuscadorProductos from '@/components/BuscadorProductos';
 import PresupuestoChart from '@/components/PresupuestoChart';
 import FechaActual from '@/components/FechaActual';
 import ActualizacionesList from '@/components/ActualizacionesList';
+import Bienvenida from '@/components/Bienvenida';
 
 
 
 export default function HomePage() {
   return (
+    
     <main>
       {/* HEADER */}
       <header className="main-header">
@@ -24,10 +26,9 @@ export default function HomePage() {
       <div className="wrapper">
         {/* WELCOME */}
         <div className="welcome-container">
-          <h1 className="welcome-text">Bienvenido Nicolas Sofras</h1>
+          <Bienvenida />
           <FechaActual />
         </div>
-    
         {/* BUSCADOR */}
         <BuscadorProductos />
       </div>

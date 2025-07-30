@@ -40,8 +40,9 @@ export default function ConfigPage() {
           <select id="categoria">
             <option value="postes">Postes</option>
             <option value="tejidos">Tejidos</option>
-            <option value="puertasPortones">Puertas y portones</option>
-            <option value="otros">
+            <option value="puertas">Puertas</option>
+            <option value="portones">Portones</option>
+            <option value="accesorios">
               Otros (Ganchos, Torniquetes, Planchuelas, Alambres, Concertinas, Resistencias, etc)
             </option>
           </select>
