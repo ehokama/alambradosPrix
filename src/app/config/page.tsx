@@ -5,18 +5,85 @@ import Link from 'next/link';
 import { auth } from "@/firebase/config";
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { obtenerDocumentosPorCampo  } from '@/app/utils/firestoreUtils'; 
 
 export default function ConfigPage() {
+  interface Producto {
+    nombre: string;
+  }
+
   const router = useRouter();
+  const [categoria, setCategoria] = useState<string>('Poste');
+  const [productos, setProductos] = useState<any[]>([]);
+  const [productosAbiertos, setProductosAbiertos] = useState<Set<string>>(new Set());
+  const [camposEditando, setCamposEditando] = useState<Record<string, string | null>>({});
+  const [valoresTemporales, setValoresTemporales] = useState<Record<string, string>>({});
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.push('/login'); // o a la ruta de login
+      router.push('/login');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
   };
+
+  const cargarProductos = async (categoria: string) => {
+    const docs = await obtenerDocumentosPorCampo<Producto>('productos', 'tipo', categoria);
+    const docsOrdenados = docs.sort((a, b) => (a.nombre ?? '').localeCompare(b.nombre ?? ''));
+    setProductos(docsOrdenados);
+  };
+
+  const handleCategoriaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nuevaCategoria = e.target.value;
+    setCategoria(nuevaCategoria);
+    await cargarProductos(nuevaCategoria);
+  };
+
+   const toggleProducto = (id: string) => {
+    setProductosAbiertos((prev) => {
+      const nuevo = new Set(prev);
+      nuevo.has(id) ? nuevo.delete(id) : nuevo.add(id);
+      return nuevo;
+    });
+  };
+
+  const editarCampo = (prodId: string, campo: string, valorActual: string) => {
+    setCamposEditando((prev) => ({ ...prev, [`${prodId}-${campo}`]: campo }));
+    setValoresTemporales((prev) => ({ ...prev, [`${prodId}-${campo}`]: valorActual }));
+  };
+
+  const guardarCampo = (prodId: string, campo: string) => {
+    const clave = `${prodId}-${campo}`;
+    const nuevoValor = valoresTemporales[clave];
+
+    setProductos((prev) =>
+      prev.map((p) =>
+        p.id === prodId ? { ...p, [campo]: nuevoValor } : p
+      )
+    );
+    
+
+    // Limpiar estados
+    setCamposEditando((prev) => {
+      const nuevo = { ...prev };
+      delete nuevo[clave];
+      return nuevo;
+    });
+
+    setValoresTemporales((prev) => {
+      const nuevo = { ...prev };
+      delete nuevo[clave];
+      return nuevo;
+    });
+  }
+
+  useEffect(() => {
+    (async () => {
+      await cargarProductos(categoria);
+    })();
+  }, []);
 
   return (
     <>
@@ -37,24 +104,81 @@ export default function ConfigPage() {
 
         <div className="config-container">
           <h1 className="categoria-title">Seleccionar categoría de productos</h1>
-          <select id="categoria">
-            <option value="postes">Postes</option>
-            <option value="tejidos">Tejidos</option>
-            <option value="puertas">Puertas</option>
-            <option value="portones">Portones</option>
-            <option value="accesorios">
+          <select id="categoria" value={categoria} onChange={handleCategoriaChange}> 
+            <option value="Poste">Postes</option>
+            <option value="Tejido">Tejidos</option>
+            <option value="Puerta">Puertas</option>
+            <option value="Porton">Portones</option>
+            <option value="Accesorio">
               Otros (Ganchos, Torniquetes, Planchuelas, Alambres, Concertinas, Resistencias, etc)
             </option>
           </select>
 
-          <div id="productos">
-            <h2>Lista de productos:</h2>
-            <div id="lista">
-              <div className="producto">Producto1</div>
-            </div>
+
+        <div id="productos">
+          <h2>Lista de productos:</h2>
+          <div id="lista">
+            {productos.length === 0 ? (
+                <p>No hay productos en esta categoría.</p>
+              ) : (
+                productos.map((prod) => (
+                  <div key={prod.id} className="producto">
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <strong>{prod.nombre}</strong>
+                      <button onClick={() => toggleProducto(prod.id)} className="edit-button"> 
+                        {productosAbiertos.has(prod.id) ? 'Ocultar' : 'Editar'}
+                      </button>
+                    </div>
+
+                    {productosAbiertos.has(prod.id) && (
+                      <div className="detalles-producto">
+                        {Object.entries(prod).map(([campo, valor]) => {
+                          if (campo === 'id' || campo === 'nombre') return null;
+                          const clave = `${prod.id}-${campo}`;
+                          const estaEditando = camposEditando[clave] === campo;
+
+                          return (
+                            <div key={campo} className="campo-producto" style={{ marginBottom: '0.5rem' }}>
+                              <span className="campo-nombre">{campo}:</span>{' '}
+                              {estaEditando ? (
+                                <>
+                                  <input className='input-editar'
+                                    type="text"
+                                    placeholder={String(valor)}
+                                    value={valoresTemporales[clave] || ''}
+                                    onChange={(e) =>
+                                      setValoresTemporales((prev) => ({
+                                        ...prev,
+                                        [clave]: e.target.value,
+                                      }))
+                                    }
+                                  />
+                                  <button onClick={() => guardarCampo(prod.id, campo)} className="edit-button">Guardar</button>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="campo-valor">{String(valor)}</span>
+                                  <button className="edit-button"
+                                    style={{ marginLeft: '0.5rem' }}
+                                    onClick={() => editarCampo(prod.id, campo, String(valor))}
+                                  >
+                                    Editar
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
           </div>
+
         </div>
       </div>
+    </div>
 
       {/* FINAL BODY */}
       <div className="final-body">
@@ -64,4 +188,5 @@ export default function ConfigPage() {
       </div>
     </>
   );
-}
+  }
+

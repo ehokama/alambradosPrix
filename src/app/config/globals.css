@@ -181,3 +181,31 @@ body {
   }
   
 }
+
+.edit-button{
+  margin-left: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background-color: #0b8749;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+}
+.edit-button:hover{
+  background-color: #15af62;
+}
+.input-editar {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  margin-right: 8px;
+  transition: border-color 0.3s ease;
+  margin-left: 10px;
+}
+.input-editar:focus {
+  border-color: #058a2f;
+  box-shadow: 0 0 6px rgba(5,138,47,0.5);
+}
