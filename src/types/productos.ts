@@ -9,9 +9,6 @@ export interface ProductoBase {
     ultimaModificacion: string;
 }
 
-export interface ProductoTejido extends ProductoBase {
-  // por ahora no agrega nada
-}
 
 export interface ProductoAccesorio extends ProductoBase {
   subtipo: string;
@@ -33,7 +30,6 @@ export interface ProductoPuerta extends ProductoBase {
 }
 
 export type Producto =
-  | ProductoTejido
   | ProductoAccesorio
   | ProductoPoste
   | ProductoPorton
