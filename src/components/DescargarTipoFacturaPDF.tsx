@@ -17,10 +17,16 @@ export function generarTipoFacturaPDF(nombreCliente: string, seleccionados: Prod
   const pageWidth = doc.internal.pageSize.getWidth();
 
     // === DETALLE DE LA FACTURA ===
-const totalFinal = seleccionados.reduce(
-  (acc, p) => acc + ( ( (p.precioUnitario * (1-p.bonificacion) ) * 1.21 * ( 1 + p.recargo ) ) * (1 + p.margenGanancia)  ) * p.cantidad,
-  0
-);
+const totalFinal = seleccionados.reduce((total, producto) => {
+      if (producto.tipo === "Porton" || producto.tipo === "Puerta") {
+        return total + producto.precioUnitario * producto.cantidad;
+      }if (producto.tipo === "Poste" ){
+        return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad; // sin iva??
+      }else{
+        return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * 1.21 * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad;
+      }
+
+  }, 0);
 const tableResult = autoTable(doc, {
   startY: 70,
   margin: { top: 70, left: 10, right: 10 },
@@ -124,6 +130,9 @@ const tableResult = autoTable(doc, {
   doc.line(10, 60, pageWidth-10, 60); // línea de izquierda a derecha de la hoja A4
   doc.line(10, 45, pageWidth-10, 45); // línea de izquierda a derecha de la hoja A4
 
+  doc.text("Vezzato",col3X + 5,18, { baseline: "middle" });
+  doc.text("OBRA BERNAL - cef N910",col3X + 5,25, { baseline: "middle" });  
+  doc.text("DOCUMENTO NO VALIDO COMO FACTURA",col3X + 5,18, { baseline: "middle" });
   }
 });
     

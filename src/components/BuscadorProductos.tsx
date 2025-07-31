@@ -15,6 +15,8 @@ export default function BuscadorProductos() {
   const preciofinal = seleccionados.reduce((total, producto) => {
       if (producto.tipo === "Porton" || producto.tipo === "Puerta") {
         return total + producto.precioUnitario * producto.cantidad;
+      }if (producto.tipo === "Poste" ){
+        return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad; // sin iva??
       }else{
         return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * 1.21 * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad;
       }
@@ -101,7 +103,7 @@ export default function BuscadorProductos() {
             </div>
           {seleccionados.length > 0 && (
             <div className="botones">
-              <button className="boton-descargar" onClick={() => generarInformativoPDF("Agustina Selaya")}>Descargar PDF Informativo</button>
+              <button className="boton-descargar" onClick={() => generarInformativoPDF("Agustina Selaya", seleccionados)}>Descargar PDF Informativo</button>
               <button className="boton-descargar" onClick={() => generarTipoFacturaPDF("Agustina Selaya", seleccionados)}>Descargar PDF Tipo Factura</button>
               <button className="boton-limpiar" onClick={limpiar}>Limpiar</button>
             </div>
