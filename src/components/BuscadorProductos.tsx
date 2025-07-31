@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { generarPDF } from "./DescargarTipoFacturaPDF";
+import { generarTipoFacturaPDF } from "./DescargarTipoFacturaPDF";
+import { generarInformativoPDF } from "./DescargarInformativoPDF";
 import { obtenerDocumentosDeColeccion } from "@/app/utils/firestoreUtils";
 import { Producto, ProductoSeleccionado } from "@/types/productos";
 
@@ -10,6 +11,14 @@ export default function BuscadorProductos() {
 
   const costoTotal = seleccionados.reduce((total, producto) => {
     return total + producto.precioUnitario * producto.cantidad;
+  }, 0);
+  const preciofinal = seleccionados.reduce((total, producto) => {
+      if (producto.tipo === "Porton" || producto.tipo === "Puerta") {
+        return total + producto.precioUnitario * producto.cantidad;
+      }else{
+        return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * 1.21 * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad;
+      }
+
   }, 0);
 
   useEffect(() => {
@@ -85,12 +94,15 @@ export default function BuscadorProductos() {
           ))}
             {/* Total al final */}
             <div className="total-costo" style={{ marginTop: "1rem", fontWeight: "bold" }}>
-              Costo total: ${costoTotal.toFixed(2)}
+              Costo total (Prebono, iva, recargo y bonificación ): ${costoTotal.toFixed(2)}
+            </div>
+            <div className="precio-final" style={{ marginTop: "1rem", fontWeight: "bold" }}>
+              Precio final (Para cliente): ${preciofinal.toFixed(2)}
             </div>
           {seleccionados.length > 0 && (
             <div className="botones">
-              <button className="boton-descargar">Descargar PDF Informativo</button>
-              <button className="boton-descargar" onClick={() => generarPDF("Agustina Selaya")}>Descargar PDF Tipo Factura</button>
+              <button className="boton-descargar" onClick={() => generarInformativoPDF("Agustina Selaya")}>Descargar PDF Informativo</button>
+              <button className="boton-descargar" onClick={() => generarTipoFacturaPDF("Agustina Selaya", seleccionados)}>Descargar PDF Tipo Factura</button>
               <button className="boton-limpiar" onClick={limpiar}>Limpiar</button>
             </div>
           )}

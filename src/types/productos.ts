@@ -7,6 +7,7 @@ export interface ProductoBase {
     fechaCreacion: string;
     bonificacion: number;
     ultimaModificacion: string;
+    recargo: number;
 }
 
 
@@ -48,4 +49,17 @@ export interface Actualizacion {
   fecha: string;
   usuario: string;
   descripcion: string;
+}
+
+export interface Presupuesto {
+  id: string;
+  fecha: string;
+  usuario: string;
+
+  cliente: string;
+  ubicacion: string;
+  obra: string;
+  
+  productos: string;
+  total: number;
 }

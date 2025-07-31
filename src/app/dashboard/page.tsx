@@ -22,16 +22,21 @@ export default function HomePage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        router.replace('/login'); // redirige si NO hay usuario
+        router.replace('/login');
       } else {
-        setCheckingAuth(false); // si hay usuario, deja mostrar la página
+        setCheckingAuth(false);
+        document.body.classList.add('auth-ready');
       }
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribe();
+      document.body.classList.remove('auth-ready');
+    };
   }, [router]);
 
   if (checkingAuth) {
-    return <p>Verificando autenticación...</p>;
+    return null; // No mostramos nada hasta que se confirme
   }
 
   return (
@@ -51,9 +56,11 @@ export default function HomePage() {
           <Bienvenida />
           <FechaActual />
         </div>
+
         {/* BUSCADOR */}
         <BuscadorProductos />
       </div>
+
       {/* METRICAS */}
       <div className="metrics-container">
         <div className="actualizaciones">
