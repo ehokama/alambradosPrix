@@ -257,11 +257,14 @@ body {
 
 
 /* pdf */
+/* Contenedor de botones */
 .botones {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  flex-wrap: wrap; /* importante para que no se desborde en pantallas pequeñas */
+  gap: 1rem;
   margin-top: 2rem;
+  padding: 0 1rem; /* para que tenga margen lateral en pantallas chicas */
 }
 
 /* RESPONSIVE */
@@ -304,10 +307,27 @@ body {
 @media screen and (max-width: 768px) {
   .metrics-container {
     flex-direction: column;
-    margin: 1rem;
+    margin: 1rem auto; /* centrado horizontalmente */
+    width: 90%; /* para que coincida con .wrapper */
   }
+
   .metrics-container > div {
-    width: 100%;
+    width: 91%;
     margin-bottom: 1.5rem;
   }
+
+
+
+    .botones {
+    flex-direction: column; /* botones uno debajo del otro */
+    align-items: center; /* centrar los botones */
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  .botones button {
+    width: 100%;
+    max-width: 300px; /* opcional, para que no sean demasiado anchos */
+  }
+
 }
