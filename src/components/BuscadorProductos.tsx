@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { generarPDF } from "./DescargarTipoFacturaPDF";
 import { obtenerDocumentosDeColeccion } from "@/app/utils/firestoreUtils";
-import { Producto, ProductoSeleccionado } from "@/app/interfaces/ProductoInterfaces";
+import { Producto, ProductoSeleccionado } from "@/types/productos";
 
 export default function BuscadorProductos() {
   const [busqueda, setBusqueda] = useState('');
