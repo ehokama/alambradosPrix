@@ -5,21 +5,26 @@ import Link from 'next/link';
 import { auth } from "@/firebase/config";
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { obtenerDocumentosPorCampo  } from '@/app/utils/firestoreUtils'; 
+import { useEffect, useState, useCallback } from 'react';
+import { obtenerDocumentosPorCampo } from '@/app/utils/firestoreUtils'; 
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { obtenerFechaFormateada } from '../utils/fecha';
 import { autoWidth } from '../utils/autowidth'; 
 
-export default function ConfigPage() {
-  interface Producto {
-    nombre: string;
-  }
+interface Producto {
+  id: string;
+  nombre: string;
+  tipo?: string;
+  fechacreacion?: string;
+  ultimaModificacion?: string;
+  [key: string]: any; // para otros campos dinámicos
+}
 
+export default function ConfigPage() {
   const router = useRouter();
   const [categoria, setCategoria] = useState<string>('Poste');
-  const [productos, setProductos] = useState<any[]>([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
   const [productosAbiertos, setProductosAbiertos] = useState<Set<string>>(new Set());
   const [camposEditando, setCamposEditando] = useState<Record<string, string | null>>({});
   const [valoresTemporales, setValoresTemporales] = useState<Record<string, string>>({});
@@ -33,11 +38,11 @@ export default function ConfigPage() {
     }
   };
 
-  const cargarProductos = async (categoria: string) => {
+  const cargarProductos = useCallback(async (categoria: string) => {
     const docs = await obtenerDocumentosPorCampo<Producto>('productos', 'tipo', categoria);
     const docsOrdenados = docs.sort((a, b) => (a.nombre ?? '').localeCompare(b.nombre ?? ''));
     setProductos(docsOrdenados);
-  };
+  }, []);
 
   const handleCategoriaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nuevaCategoria = e.target.value;
@@ -45,10 +50,14 @@ export default function ConfigPage() {
     await cargarProductos(nuevaCategoria);
   };
 
-   const toggleProducto = (id: string) => {
+  const toggleProducto = (id: string) => {
     setProductosAbiertos((prev) => {
       const nuevo = new Set(prev);
-      nuevo.has(id) ? nuevo.delete(id) : nuevo.add(id);
+      if (nuevo.has(id)) {
+        nuevo.delete(id);
+      } else {
+        nuevo.add(id);
+      }
       return nuevo;
     });
   };
@@ -58,47 +67,45 @@ export default function ConfigPage() {
     setValoresTemporales((prev) => ({ ...prev, [`${prodId}-${campo}`]: valorActual }));
   };
 
-const guardarCampo = async (id: string, campo: string) => {
-  const clave = `${id}-${campo}`;
-  const nuevoValor = valoresTemporales[clave];
+  const guardarCampo = async (id: string, campo: string) => {
+    const clave = `${id}-${campo}`;
+    const nuevoValor = valoresTemporales[clave];
+    if (nuevoValor === undefined || nuevoValor.trim() === '') return;
 
-  if (nuevoValor === undefined || nuevoValor.trim() === '') return;
+    try {
+      const productoRef = doc(db, 'productos', id);
+      await updateDoc(productoRef, {
+        [campo]: nuevoValor,
+        ultimaModificacion: obtenerFechaFormateada(),
+      });
 
-  try {
-    const productoRef = doc(db, 'productos', id);
-    await updateDoc(productoRef, {
-      [campo]: nuevoValor,
-      ultimaModificacion: obtenerFechaFormateada(),
-    });
+      setProductos((prev) =>
+        prev.map((prod) =>
+          prod.id === id ? { ...prod, [campo]: nuevoValor, ultimaModificacion: obtenerFechaFormateada() } : prod
+        )
+      );
 
-    // actualiza localmente
-    setProductos((prev) =>
-      prev.map((prod) =>
-        prod.id === id ? { ...prod, [campo]: nuevoValor, ultimaModificacion: new Date().toISOString() } : prod
-      )
-    );
+      setCamposEditando((prev) => {
+        const copia = { ...prev };
+        delete copia[clave];
+        return copia;
+      });
 
-    // cleanin'
-    setCamposEditando((prev) => {
-      const copia = { ...prev };
-      delete copia[clave];
-      return copia;
-    });
-    setValoresTemporales((prev) => {
-      const copia = { ...prev };
-      delete copia[clave];
-      return copia;
-    });
-  } catch (error) {
-    console.error('Error al actualizar el producto:', error);
-  }
-};
+      setValoresTemporales((prev) => {
+        const copia = { ...prev };
+        delete copia[clave];
+        return copia;
+      });
+    } catch (error) {
+      console.error('Error al actualizar el producto:', error);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      await cargarProductos(categoria);
-    })();
-  }, []);
+    cargarProductos(categoria);
+  }, [categoria, cargarProductos]);
+
+  const camposNoEditables = ['id', 'fechacreacion', 'ultimaModificacion'];
 
   return (
     <>
@@ -129,11 +136,10 @@ const guardarCampo = async (id: string, campo: string) => {
             </option>
           </select>
 
-
-        <div id="productos">
-          <h2>Lista de productos:</h2>
-          <div id="lista">
-            {productos.length === 0 ? (
+          <div id="productos">
+            <h2>Lista de productos:</h2>
+            <div id="lista">
+              {productos.length === 0 ? (
                 <p>No hay productos en esta categoría.</p>
               ) : (
                 productos.map((prod) => (
@@ -148,90 +154,89 @@ const guardarCampo = async (id: string, campo: string) => {
                     {productosAbiertos.has(prod.id) && (
                       <div className="detalles-producto">
                         {Object.entries(prod).map(([campo, valor]) => {
-                          if (['id'].includes(campo)) return null;
-      const clave = `${prod.id}-${campo}`;
-      const estaEditando = camposEditando[clave] === campo;
+                          if (camposNoEditables.includes(campo)) {
+                            return (
+                              <div key={campo} className="campo-producto" style={{ marginBottom: '0.5rem' }}>
+                                <span className="campo-nombre">{campo}:</span>{' '}
+                                <span className="campo-valor">{String(valor)}</span>
+                              </div>
+                            );
+                          }
 
-      const camposNoEditables = ['id', 'fechaCreacion', 'ultimaModificacion'];
+                          const clave = `${prod.id}-${campo}`;
+                          const estaEditando = camposEditando[clave] === campo;
 
-      return (
-        <div key={campo} className="campo-producto" style={{ marginBottom: '0.5rem' }}>
-          <span className="campo-nombre">{campo}:</span>{' '}
-          {camposNoEditables.includes(campo) ? (
-            <span className="campo-valor">{String(valor)}</span>
-          ) : estaEditando ? (
-            <>
-            <input
-              className="input-editar"
-              type="text"
-              placeholder={String(valor)}
-              value={valoresTemporales[clave] || ''}
-              style={{
-                width: `${autoWidth(valoresTemporales[clave] || String(valor), '16px Arial') + 20}px`,
-              }}
-              onChange={(e) =>
-                setValoresTemporales((prev) => ({
-                  ...prev,
-                  [clave]: e.target.value,
-                }))
-              }
-            />
-              <button onClick={() => guardarCampo(prod.id, campo)} className="edit-button">Guardar</button>
-              {/* Botón Cancelar */}
-    <button
-      onClick={() => {
-        setCamposEditando(prev => {
-          const copia = {...prev};
-          delete copia[clave];
-          return copia;
-        });
-        setValoresTemporales(prev => {
-          const copia = {...prev};
-          delete copia[clave];
-          return copia;
-        });
-      }}
-      className="cancel-button"
-      style={{ marginLeft: '0.5rem' }}
-    >
-      Cancelar
-    </button>
-            </>
-          ) : (
-              <>
-                <span className="campo-valor">{String(valor)}</span>
-                <button
-                  className="edit-button"
-                  style={{ marginLeft: '0.5rem' }}
-                  onClick={() => editarCampo(prod.id, campo, String(valor))}
-                >
-                  Editar
-                </button>
-              </>
-            )}
-      
-    </div>
-        );
-            })    }
-                          </div>
-                        )}
+                          return (
+                            <div key={campo} className="campo-producto" style={{ marginBottom: '0.5rem' }}>
+                              <span className="campo-nombre">{campo}:</span>{' '}
+                              {estaEditando ? (
+                                <>
+                                  <input
+                                    className="input-editar"
+                                    type="text"
+                                    placeholder={String(valor)}
+                                    value={valoresTemporales[clave] || ''}
+                                    style={{
+                                      width: `${autoWidth(valoresTemporales[clave] || String(valor), '16px Arial') + 20}px`,
+                                    }}
+                                    onChange={(e) =>
+                                      setValoresTemporales((prev) => ({
+                                        ...prev,
+                                        [clave]: e.target.value,
+                                      }))
+                                    }
+                                  />
+                                  <button onClick={() => guardarCampo(prod.id, campo)} className="edit-button">Guardar</button>
+                                  <button
+                                    onClick={() => {
+                                      setCamposEditando(prev => {
+                                        const copia = {...prev};
+                                        delete copia[clave];
+                                        return copia;
+                                      });
+                                      setValoresTemporales(prev => {
+                                        const copia = {...prev};
+                                        delete copia[clave];
+                                        return copia;
+                                      });
+                                    }}
+                                    className="cancel-button"
+                                    style={{ marginLeft: '0.5rem' }}
+                                  >
+                                    Cancelar
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="campo-valor">{String(valor)}</span>
+                                  <button
+                                    className="edit-button"
+                                    style={{ marginLeft: '0.5rem' }}
+                                    onClick={() => editarCampo(prod.id, campo, String(valor))}
+                                  >
+                                    Editar
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))
-                  )}
-              </div>
-                
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
-                
-          {/* FINAL BODY */}
-          <div className="final-body">
-            <button onClick={handleLogout} className="boton-cerrarSesion">
-              Cerrar sesión
-            </button>
-          </div>
-        </>
-      );
-      }
-    
-    
+      </div>
+
+      {/* FINAL BODY */}
+      <div className="final-body">
+        <button onClick={handleLogout} className="boton-cerrarSesion">
+          Cerrar sesión
+        </button>
+      </div>
+    </>
+  );
+}
