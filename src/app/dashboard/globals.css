@@ -279,3 +279,35 @@ body {
   }
   
 }
+.metrics-container {
+  max-width: 90%;
+  margin: 2rem auto;
+  padding: 1rem;
+  border-radius: 12px;
+  
+  display: flex;
+  gap: 1.5rem;
+  /* que ocupe todo el ancho posible */
+  justify-content: space-between;
+}
+
+/* Que cada bloque ocupe un tercio del contenedor */
+.metrics-container > div {
+  flex: 1 1 0;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive para pantallas chicas */
+@media screen and (max-width: 768px) {
+  .metrics-container {
+    flex-direction: column;
+    margin: 1rem;
+  }
+  .metrics-container > div {
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+}
