@@ -1,3 +1,5 @@
+'use client';
+
 import './globals.css';
 
 import Image from 'next/image';
@@ -8,11 +10,31 @@ import FechaActual from '@/components/FechaActual';
 import ActualizacionesList from '@/components/ActualizacionesList';
 import Bienvenida from '@/components/Bienvenida';
 
-
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function HomePage() {
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.replace('/login'); // redirige si NO hay usuario
+      } else {
+        setCheckingAuth(false); // si hay usuario, deja mostrar la página
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
+  if (checkingAuth) {
+    return <p>Verificando autenticación...</p>;
+  }
+
   return (
-    
     <main>
       {/* HEADER */}
       <header className="main-header">

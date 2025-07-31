@@ -1,20 +1,20 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { generarPDF } from "./DescargarTipoFacturaPDF";
 import { obtenerDocumentosDeColeccion } from "@/app/utils/firestoreUtils";
+import { Producto, ProductoSeleccionado } from "@/app/interfaces/ProductoInterfaces";
 
 export default function BuscadorProductos() {
   const [busqueda, setBusqueda] = useState('');
-  const [seleccionados, setSeleccionados] = useState<any[]>([]);
+  const [seleccionados, setSeleccionados] = useState<ProductoSeleccionado[]>([]);
+  const [productosBase, setProductosBase] = useState<Producto[]>([]);
+
   const costoTotal = seleccionados.reduce((total, producto) => {
-  return total + producto.precioUnitario * producto.cantidad;
+    return total + producto.precioUnitario * producto.cantidad;
   }, 0);
-  const [productosBase, setProductosBase] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchProductos = async () => {
-      const productos = await obtenerDocumentosDeColeccion("productos");
+      const productos = await obtenerDocumentosDeColeccion<Producto>("productos");
       setProductosBase(productos);
     };
     fetchProductos();
@@ -24,7 +24,7 @@ export default function BuscadorProductos() {
     ? productosBase.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()))
     : [];
 
-  const agregarProducto = (producto: any) => {
+  const agregarProducto = (producto: Producto) => {
     if (seleccionados.some(s => s.nombre === producto.nombre)) return;
     setSeleccionados([...seleccionados, { ...producto, cantidad: 1 }]);
     setBusqueda('');

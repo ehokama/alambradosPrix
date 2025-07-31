@@ -4,15 +4,23 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/firebase/config';
 import { obtenerDocumentoPorCampo } from '@/app/utils/firestoreUtils';
+import { Usuario } from '@/types/productos';
 
 export default function MensajeBienvenida() {
   const [nombre, setNombre] = useState<string>('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (usuario) => {
-      if (usuario?.email) {
-        const doc = await obtenerDocumentoPorCampo('usuarios', 'email', usuario.email);
-        if (doc && 'nombre' in doc) {
+    const unsubscribe = onAuthStateChanged(auth, async (usuarioFirebase) => {
+      if (usuarioFirebase?.email) {
+        // Poner el tipo genérico <Usuario> para que retorne ese tipo
+        const doc = await obtenerDocumentoPorCampo<Usuario>(
+          'usuarios',
+          'email',
+          usuarioFirebase.email
+        );
+
+        // Validación segura
+        if (doc && typeof doc.nombre === 'string') {
           setNombre(doc.nombre);
         } else {
           setNombre('');

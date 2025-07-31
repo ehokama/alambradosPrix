@@ -2,17 +2,19 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from "@/firebase/config"
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
-export async function obtenerDocumentosDeColeccion(nombreColeccion: string) {
+export async function obtenerDocumentosDeColeccion<T>(
+  nombreColeccion: string
+): Promise<(T & { id: string })[]> {
   const coleccionRef = collection(db, nombreColeccion);
   const snapshot = await getDocs(coleccionRef);
 
   return snapshot.docs.map(doc => ({
     id: doc.id,
-    ...doc.data(),
+    ...(doc.data() as T),
   }));
 }
 
-export async function obtenerDocumentoPorCampo<T = any>(
+export async function obtenerDocumentoPorCampo<T>(
   coleccion: string,
   campo: string,
   valor: string
@@ -39,7 +41,7 @@ export async function obtenerDocumentosPorCampo<T>(
   const q = query(collection(db, coleccion), where(campo, '==', valor));
   const querySnapshot = await getDocs(q);
 
-  return querySnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => ({
+  return querySnapshot.docs.map(doc => ({
     id: doc.id,
     ...(doc.data() as T),
   }));

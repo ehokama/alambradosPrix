@@ -1,14 +1,13 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { obtenerDocumentosDeColeccion } from "@/app/utils/firestoreUtils";
+import { Actualizacion } from "@/types/productos";
 
 export default function ActualizacionesList() {
-  const [actualizaciones, setActualizaciones] = useState<any[]>([]);
+  const [actualizaciones, setActualizaciones] = useState<Actualizacion[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const datos = await obtenerDocumentosDeColeccion("actualizaciones");
+      const datos = await obtenerDocumentosDeColeccion<Actualizacion>("actualizaciones");
       setActualizaciones(datos);
     };
     fetchData();
@@ -25,4 +24,3 @@ export default function ActualizacionesList() {
     </div>
   );
 }
- 

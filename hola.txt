@@ -11,9 +11,8 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { obtenerFechaFormateada } from '../utils/fecha';
 import { autoWidth } from '../utils/autowidth'; 
-import { ProductoBase,Usuario } from '@/types/productos';
+import { ProductoBase } from '@/types/productos';
 import { collection, addDoc } from 'firebase/firestore';
-import { obtenerDocumentoPorCampo } from '@/app/utils/firestoreUtils';
 
 export default function ConfigPage() {
   const router = useRouter();
@@ -80,49 +79,33 @@ export default function ConfigPage() {
     setValoresTemporales((prev) => ({ ...prev, [`${prodId}-${campo}`]: valorActual }));
   };
 
-const guardarCampo = async (id: string, campo: string) => {
+  const guardarCampo = async (id: string, campo: string) => {
   const clave = `${id}-${campo}`;
   const nuevoValor = valoresTemporales[clave];
   if (!nuevoValor || nuevoValor.trim() === '') return;
 
   try {
-    // Actualizo producto en Firestore
     const productoRef = doc(db, 'productos', id);
     await updateDoc(productoRef, {
       [campo]: nuevoValor,
       ultimaModificacion: obtenerFechaFormateada(),
     });
 
-    // Obtengo producto modificado localmente
+    // Buscar el producto modificado para obtener su nombre y hacer descripción
     const productoModificado = productos.find((p) => p.id === id);
 
-    // Obtengo autor (nombre del usuario) una sola vez con validación segura
-    let autor = 'Usuario desconocido';
-    if (user?.email) {
-      const docsUsuario = await obtenerDocumentoPorCampo<Usuario>(
-        'usuarios',
-        'email',
-        user.email
-      );
-      if (docsUsuario && typeof docsUsuario.nombre === 'string' && docsUsuario.nombre.trim() !== '') {
-        autor = docsUsuario.nombre;
-      } else if (docsUsuario && typeof docsUsuario.nombre === 'string' && docsUsuario.nombre.trim() !== '') {
-        autor = docsUsuario.nombre;
-      }
-    }
+    // Crear la descripción para la actualización
+    const descripcion = `cambió el campo "${campo}" de "${productoModificado?.nombre ?? 'producto desconocido'}" a "${nuevoValor}"`;
 
-    // Creo descripción para el registro de actualización
-    const descripcion = `${autor} cambió el campo "${campo}" de "${productoModificado?.nombre ?? 'producto desconocido'}" a "${nuevoValor}"`;
-
-    // Registro la actualización en Firestore
+    // Guardar la actualización en la colección "actualizaciones"
     await addDoc(collection(db, 'actualizaciones'), {
       tipo: 'Actualizacion',
-      autor,
+      autor: user?.displayName ?? 'Usuario desconocido',
       fecha: obtenerFechaFormateada(),
       descripcion,
     });
 
-    // Actualizo estado local con nuevo valor y fecha de modificación
+    // Actualizar estado local de productos
     setProductos((prev) =>
       prev.map((prod) =>
         prod.id === id
@@ -131,7 +114,7 @@ const guardarCampo = async (id: string, campo: string) => {
       )
     );
 
-    // Limpio edición y valores temporales
+    // Limpiar edición
     setCamposEditando((prev) => {
       const copia = { ...prev };
       delete copia[clave];
@@ -147,7 +130,6 @@ const guardarCampo = async (id: string, campo: string) => {
     console.error('Error al actualizar el producto:', error);
   }
 };
-
 
   // Mientras verifica usuario, muestra carga
   if (user === null) {
