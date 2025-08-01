@@ -6,6 +6,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { ProductoSeleccionado } from "@/types/productos";
 import { guardarPresupuesto, obtenerNuevoNumeroPresupuesto} from "@/app/utils/firestorePresupuestos"; 
+import { auth } from "@/firebase/config";
 
 interface jsPDFWithAutoTable extends jsPDF {
   lastAutoTable?: {
@@ -24,6 +25,7 @@ export async function generarTipoFacturaPDF(
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const fechaStr = new Date().toISOString().slice(0, 10);
+  const autor = auth.currentUser?.displayName || auth.currentUser?.email || "usuario_desconocido";
 
   const numeroPresupuesto = await obtenerNuevoNumeroPresupuesto();
 
@@ -162,7 +164,7 @@ export async function generarTipoFacturaPDF(
     obraCliente,
     productos: seleccionados,
     fecha: fechaStr,
-    autor: "admin",
+    autor,
   });
 
   doc.save(`presupuesto_${numeroPresupuesto}_${nombreCliente}_${fechaStr}.pdf`);
