@@ -1,7 +1,5 @@
 'use client';
 
-import './globals.css';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import BuscadorProductos from '@/components/BuscadorProductos';
@@ -49,7 +47,7 @@ export default function HomePage() {
           <Link href="/config">Configuración</Link>
         </nav>
       </header>
-
+      
       <div className="wrapper">
         {/* WELCOME */}
         <div className="welcome-container">

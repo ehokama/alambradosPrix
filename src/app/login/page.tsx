@@ -1,5 +1,4 @@
 "use client";
-import './globals.css';
 import React, { useState, FormEvent } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebase/config";

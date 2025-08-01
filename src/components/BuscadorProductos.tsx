@@ -8,20 +8,27 @@ export default function BuscadorProductos() {
   const [busqueda, setBusqueda] = useState('');
   const [seleccionados, setSeleccionados] = useState<ProductoSeleccionado[]>([]);
   const [productosBase, setProductosBase] = useState<Producto[]>([]);
+  const [manoDeObraViaticos, setManoDeObraViaticos] = useState("");
 
+//datos
+  const [nombreCliente, setNombreCliente] = useState('');
+  const [ubicacionCliente, setUbicacionCliente] = useState('');
+  const [obraCliente, setObraCliente] = useState('');
+
+  const viaticos = parseFloat(manoDeObraViaticos) || 0;
   const costoTotal = seleccionados.reduce((total, producto) => {
-    return total + producto.precioUnitario * producto.cantidad;
+    return total + producto.precioUnitario * producto.cantidad ;
   }, 0);
-  const preciofinal = seleccionados.reduce((total, producto) => {
+  const preciofinal = seleccionados.reduce((total, producto, manoDeObraViaticos) => {
       if (producto.tipo === "Porton" || producto.tipo === "Puerta") {
-        return total + producto.precioUnitario * producto.cantidad;
+        return total + producto.precioUnitario * producto.cantidad + manoDeObraViaticos;
       }if (producto.tipo === "Poste" ){
-        return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad; // sin iva??
+        return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad + manoDeObraViaticos; // sin iva??
       }else{
-        return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * 1.21 * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad;
+        return total + ( ( (producto.precioUnitario * (1-producto.bonificacion) ) * 1.21 * ( 1 + producto.recargo ) ) * (1 + producto.margenGanancia)  ) * producto.cantidad + manoDeObraViaticos;
       }
 
-  }, 0);
+  }, 0) + viaticos;
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -57,6 +64,25 @@ export default function BuscadorProductos() {
 
   return (
     <div className="calculator-container">
+      <h1 className="calculator-title">Datos del cliente</h1>
+      <div className="datosCliente">
+        <div className="campoCliente">
+         <input
+            type="text"
+            className="inputDatoCliente"
+            id="empresa"
+            placeholder="Escribí el nombre de la empresa o particular..."
+            value={nombreCliente}
+            onChange={(e) => setNombreCliente(e.target.value)}
+          />
+        </div>
+        <div className="campoCliente">
+          <input type="text" className="inputDatoCliente" id="ubicacion" placeholder="Escribí la ubicación de la instalación..."/>
+        </div>
+        <div className="campoCliente">
+          <input type="text" className="inputDatoCliente" id="obra" placeholder="Escribí la obra (de ser necesario)..."/>
+        </div>
+      </div>
       <h1 className="calculator-title">Buscar Productos</h1>
       <input
         type="text"
@@ -95,16 +121,30 @@ export default function BuscadorProductos() {
             </div>
           ))}
             {/* Total al final */}
+            <div className="extras" style={{ marginTop: '1rem' }}>
+              <label style={{ marginTop: "1rem", fontWeight: "bold" }}>
+                Mano de obra y viaticos ($):
+                <input
+                  type="number"
+                  value={manoDeObraViaticos}
+                  onChange={(e) => setManoDeObraViaticos(e.target.value)}
+                  className="cantidad-input"
+                  style={{ marginLeft: '10px', width: '10%' }}
+                  placeholder="Ingrese el monto de viaticos y mano de obra..."
+                />
+              </label>
+            </div>
+
             <div className="total-costo" style={{ marginTop: "1rem", fontWeight: "bold" }}>
-              Costo total (Prebono, iva, recargo y bonificación ): ${costoTotal.toFixed(2)}
+              Costo total (SIN BONIFICACIÓN, IVA, RECARGO, GANANCIA, MANO DE OBRA Y VIATICOS ): ${costoTotal.toFixed(2)}
             </div>
             <div className="precio-final" style={{ marginTop: "1rem", fontWeight: "bold" }}>
-              Precio final (Para cliente): ${preciofinal.toFixed(2)}
+              Precio final para cliente (INCLUYE BONIFICACIÓN, IVA, RECARGO, GANANCIA, MANO DE OBRA Y VIATICOS): ${preciofinal.toFixed(2)}
             </div>
           {seleccionados.length > 0 && (
             <div className="botones">
-              <button className="boton-descargar" onClick={() => generarInformativoPDF("Agustina Selaya", seleccionados)}>Descargar PDF Informativo</button>
-              <button className="boton-descargar" onClick={() => generarTipoFacturaPDF("Agustina Selaya", seleccionados)}>Descargar PDF Tipo Factura</button>
+              <button className="boton-descargar" onClick={() => generarInformativoPDF(nombreCliente, seleccionados, ubicacionCliente, obraCliente)}>Descargar PDF Informativo</button>
+              <button className="boton-descargar" onClick={() => generarTipoFacturaPDF(nombreCliente, seleccionados, ubicacionCliente, obraCliente)}>Descargar PDF Tipo Factura</button>
               <button className="boton-limpiar" onClick={limpiar}>Limpiar</button>
             </div>
           )}
