@@ -56,7 +56,7 @@ export interface Actualizacion {
 }
 
 export interface Presupuesto {
-  id: string;
+  nro: string;
   nombreCliente: string;
   ubicacionCliente: string;
   obraCliente: string;

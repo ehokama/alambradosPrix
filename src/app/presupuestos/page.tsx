@@ -7,15 +7,10 @@ import { auth, db } from '@/firebase/config';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
+import { Presupuesto } from '@/types/productos';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { generarTipoFacturaPDF } from '@/components/DescargarTipoFacturaPDF';
 
-type Presupuesto = {
-  id: string;
-  cliente?: string;
-  total?: number;
-  fecha?: string;
-};
 
 export default function PresupuestosPage() {
   const router = useRouter();
@@ -75,7 +70,7 @@ export default function PresupuestosPage() {
       const querySnapshot = await getDocs(q);
       const docs: Presupuesto[] = [];
       querySnapshot.forEach((docSnap) => {
-        docs.push({ ...(docSnap.data() as Presupuesto), id: docSnap.id });
+        docs.push({ ...(docSnap.data() as Presupuesto), nro: docSnap.id });
 
       });
 
@@ -138,23 +133,35 @@ export default function PresupuestosPage() {
           </div>
 
           <div id="presupuestos-lista">
-            <h2>Lista de presupuestos:</h2>
-            {cargando ? (
-              <p>Cargando...</p>
-            ) : presupuestos.length === 0 ? (
-              <p>No hay presupuestos para este período.</p>
-            ) : (
-              <ul>
-                {presupuestos.map((p) => (
-                  <li key={p.id} style={{ marginBottom: '0.5rem' }}>
-                    <strong>Cliente:</strong> {p.cliente ?? 'N/A'} —{' '}
-                    <strong>Total:</strong>{' '}
-                    {p.total?.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' }) ?? '-'} —{' '}
-                    <strong>Fecha:</strong> {p.fecha ?? '-'}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div id="presupuestos-lista">
+  <h2>Lista de presupuestos</h2>
+  {cargando ? (
+    <p>Cargando...</p>
+  ) : presupuestos.length === 0 ? (
+    <p>No hay presupuestos para este período.</p>
+  ) : (
+    <div id="lista">
+      {presupuestos.map((p) => (
+        <div key={p.nro} className="producto-seleccionado">
+          <div style={{ flex: 1 }}>
+            <strong>N°PRESUPUESTO:</strong> {p.nro}<br />
+            <strong>Cliente:</strong> {p.nombreCliente} <br />
+            <strong>Ubicación:</strong> {p.ubicacionCliente} <br />
+            <strong>Obra:</strong> {p.obraCliente}<br />
+
+            <strong>Fecha:</strong> {p.fecha} <br />
+            <strong>Autor:</strong> {p.autor}
+                      </div>
+          
+            <button className="boton-descargar" style={{ marginLeft: '20px', marginTop:'10px' }} onClick={() => generarTipoFacturaPDF(p.nombreCliente, p.productos, p.ubicacionCliente, p.obraCliente, false)}>
+              Ver Detalle
+            </button>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
           </div>
         </div>
       </div>

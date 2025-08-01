@@ -60,3 +60,18 @@ export async function obtenerNuevoNumeroPresupuesto(): Promise<string> {
 }
 
 
+export async function obtenerUltimoNumeroPresupuesto(): Promise<string | null> {
+  const fecha = new Date();
+  const año = fecha.getFullYear().toString().slice(-2); // "25"
+  const refAnual = doc(db, "metricas", "cantidadPresupuestos20" + año);
+
+  const snapAnual = await getDoc(refAnual);
+  if (!snapAnual.exists()) {
+    return null; // no hay ninguno todavía
+  }
+
+  const data = snapAnual.data();
+  const numeroActual = data.cantidadAnual;
+  const numeroFormateado = numeroActual.toString().padStart(4, "0");
+  return `${año}-${numeroFormateado}`;
+}

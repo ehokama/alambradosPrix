@@ -66,12 +66,14 @@ export default function HomePage() {
           <ActualizacionesList />
         </div>
 
-        <div className="presupuestos">
-          <h2>Presupuestos Hechos</h2>
-          <div className="graph">
-            <PresupuestoChart />
-          </div>
+      <div className="presupuestos">
+        <Link href="/presupuestos" style={{ cursor: 'pointer',textDecoration: 'none', color: 'black' }}>
+            <h2 >Presupuestos Hechos</h2>
+        </Link>
+        <div className="graph">
+          <PresupuestoChart />
         </div>
+      </div>
       </div>
     </main>
   );

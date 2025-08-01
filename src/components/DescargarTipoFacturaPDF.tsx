@@ -5,7 +5,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { ProductoSeleccionado } from "@/types/productos";
-import { guardarPresupuesto, obtenerNuevoNumeroPresupuesto} from "@/app/utils/firestorePresupuestos"; 
+import { guardarPresupuesto, obtenerNuevoNumeroPresupuesto, obtenerUltimoNumeroPresupuesto} from "@/app/utils/firestorePresupuestos"; 
 import { auth } from "@/firebase/config";
 
 interface jsPDFWithAutoTable extends jsPDF {
@@ -20,14 +20,23 @@ export async function generarTipoFacturaPDF(
   nombreCliente: string,
   seleccionados: ProductoSeleccionado[],
   ubicacionCliente: string,
-  obraCliente: string
+  obraCliente: string,
+  guardarEnBD: boolean = true 
 ) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const fechaStr = new Date().toISOString().slice(0, 10);
   const autor = auth.currentUser?.displayName || auth.currentUser?.email || "usuario_desconocido";
 
-  const numeroPresupuesto = await obtenerNuevoNumeroPresupuesto();
+    let numeroPresupuesto: string;
+  if (guardarEnBD) {
+    numeroPresupuesto = await obtenerNuevoNumeroPresupuesto(); // actualiza contador y devuelve nuevo número
+  }else {
+    // Si no hay número, podemos intentar obtener el último o poner uno por defecto
+    const ultimoNumero = await obtenerUltimoNumeroPresupuesto();
+    numeroPresupuesto = ultimoNumero || "0";
+  }
+
 
   //  total
   const totalFinal = seleccionados.reduce((total, producto) => {
@@ -157,17 +166,19 @@ export async function generarTipoFacturaPDF(
     doc.text(`Página: ${i} / ${totalPages}`, pageWidth - 10, pageHeight - 10, { align: "right" });
   }
 
-  await guardarPresupuesto({
-    id: numeroPresupuesto,
-    nombreCliente,
-    ubicacionCliente,
-    obraCliente,
-    productos: seleccionados,
-    fecha: fechaStr,
-    autor,
-  });
+  if (guardarEnBD) {
+    await guardarPresupuesto({
+      nro: numeroPresupuesto,
+      nombreCliente,
+      ubicacionCliente,
+      obraCliente,
+      productos: seleccionados,
+      fecha: fechaStr,
+      autor,
+    });
+  }
+    doc.save(`presupuesto_${numeroPresupuesto}_${nombreCliente}_${fechaStr}.pdf`);
+  }
 
-  doc.save(`presupuesto_${numeroPresupuesto}_${nombreCliente}_${fechaStr}.pdf`);
-}
 
 

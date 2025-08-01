@@ -163,7 +163,7 @@ const itemManoDeObra: ProductoSeleccionado = {
 
 
             <div className="total-costo" style={{ marginTop: "1rem", fontWeight: "bold" }}>
-              Costo total (SIN BONIFICACIÓN, IVA, RECARGO, GANANCIA, MANO DE OBRA Y VIATICOS ): ${costoTotal.toFixed(2)}
+              Costo total (SIN BONIFICACIÓN, IVA, RECARGO, GANANCIA, MANO DE OBRA NI VIATICOS ): ${costoTotal.toFixed(2)}
             </div>
             <div className="precio-final" style={{ marginTop: "1rem", fontWeight: "bold" }}>
               Precio final para cliente (INCLUYE BONIFICACIÓN, IVA, RECARGO, GANANCIA, MANO DE OBRA Y VIATICOS): ${preciofinal.toFixed(2)}
