@@ -9,7 +9,6 @@ export default function BuscadorProductos() {
   const [seleccionados, setSeleccionados] = useState<ProductoSeleccionado[]>([]);
   const [productosBase, setProductosBase] = useState<Producto[]>([]);
   const [manoDeObraViaticos, setManoDeObraViaticos] = useState("");
-
 //datos
   const [nombreCliente, setNombreCliente] = useState('');
   const [ubicacionCliente, setUbicacionCliente] = useState('');
@@ -29,6 +28,19 @@ export default function BuscadorProductos() {
       }
 
   }, 0) + viaticos;
+
+const itemManoDeObra: ProductoSeleccionado = {
+  id: "manoDeObra",
+  nombre: "Mano de obra y viáticos",
+  precioUnitario: viaticos,
+  cantidad: 1,
+  tipo: "ManoDeObra", 
+  bonificacion: 0,
+  recargo: 0,
+  margenGanancia: 0,
+  fechaCreacion: new Date().toISOString(),
+  ultimaModificacion: new Date().toISOString(),
+};
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -76,12 +88,26 @@ export default function BuscadorProductos() {
             onChange={(e) => setNombreCliente(e.target.value)}
           />
         </div>
-        <div className="campoCliente">
-          <input type="text" className="inputDatoCliente" id="ubicacion" placeholder="Escribí la ubicación de la instalación..."/>
-        </div>
-        <div className="campoCliente">
-          <input type="text" className="inputDatoCliente" id="obra" placeholder="Escribí la obra (de ser necesario)..."/>
-        </div>
+      <div className="campoCliente">
+        <input
+          type="text"
+          className="inputDatoCliente"
+          id="ubicacion"
+          placeholder="Escribí la ubicación de la instalación..."
+          value={ubicacionCliente}
+          onChange={(e) => setUbicacionCliente(e.target.value)}
+        />
+      </div>
+      <div className="campoCliente">
+        <input
+          type="text"
+          className="inputDatoCliente"
+          id="obra"
+          placeholder="Escribí la obra..."
+          value={obraCliente}
+          onChange={(e) => setObraCliente(e.target.value)}
+        />
+      </div>
       </div>
       <h1 className="calculator-title">Buscar Productos</h1>
       <input
@@ -122,18 +148,19 @@ export default function BuscadorProductos() {
           ))}
             {/* Total al final */}
             <div className="extras" style={{ marginTop: '1rem' }}>
-              <label style={{ marginTop: "1rem", fontWeight: "bold" }}>
+              <label className="label-mano-obra" style={{ fontWeight: "bold" }}>
                 Mano de obra y viaticos ($):
                 <input
                   type="number"
                   value={manoDeObraViaticos}
                   onChange={(e) => setManoDeObraViaticos(e.target.value)}
                   className="cantidad-input"
-                  style={{ marginLeft: '10px', width: '10%' }}
                   placeholder="Ingrese el monto de viaticos y mano de obra..."
+                
                 />
               </label>
             </div>
+
 
             <div className="total-costo" style={{ marginTop: "1rem", fontWeight: "bold" }}>
               Costo total (SIN BONIFICACIÓN, IVA, RECARGO, GANANCIA, MANO DE OBRA Y VIATICOS ): ${costoTotal.toFixed(2)}
@@ -143,8 +170,8 @@ export default function BuscadorProductos() {
             </div>
           {seleccionados.length > 0 && (
             <div className="botones">
-              <button className="boton-descargar" onClick={() => generarInformativoPDF(nombreCliente, seleccionados, ubicacionCliente, obraCliente)}>Descargar PDF Informativo</button>
-              <button className="boton-descargar" onClick={() => generarTipoFacturaPDF(nombreCliente, seleccionados, ubicacionCliente, obraCliente)}>Descargar PDF Tipo Factura</button>
+              <button className="boton-descargar" onClick={() => generarInformativoPDF(nombreCliente, [...seleccionados, itemManoDeObra], ubicacionCliente, obraCliente)}>Descargar PDF Informativo</button>
+              <button className="boton-descargar" onClick={() => generarTipoFacturaPDF(nombreCliente, [...seleccionados, itemManoDeObra], ubicacionCliente, obraCliente)}>Descargar PDF Tipo Factura</button>
               <button className="boton-limpiar" onClick={limpiar}>Limpiar</button>
             </div>
           )}

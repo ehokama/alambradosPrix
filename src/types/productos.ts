@@ -1,15 +1,19 @@
 export interface ProductoBase {
-    id: string;
-    nombre: string;
-    tipo: string;
-    precioUnitario: number;
-    margenGanancia: number;
-    fechaCreacion: string;
-    bonificacion: number;
-    ultimaModificacion: string;
-    recargo: number;
+  id: string;
+  nombre: string;
+  tipo: string;
+  precioUnitario: number;
+  margenGanancia: number;
+  fechaCreacion: string;
+  bonificacion: number;
+  ultimaModificacion: string;
+  recargo: number;
 }
 
+export interface ProductoManoDeObra extends ProductoBase {
+  tipo: "ManoDeObra";
+  cantidad: 1;
+}
 
 export interface ProductoAccesorio extends ProductoBase {
   subtipo: string;
@@ -34,12 +38,12 @@ export type Producto =
   | ProductoAccesorio
   | ProductoPoste
   | ProductoPorton
-  | ProductoPuerta;
+  | ProductoPuerta
+  | ProductoManoDeObra;
 
+export type ProductoSeleccionado = Producto & { cantidad: number };
 
-  export type ProductoSeleccionado = Producto & { cantidad: number };
-
-  export interface Usuario {
+export interface Usuario {
   nombre: string;
   email: string;
 }
@@ -53,13 +57,11 @@ export interface Actualizacion {
 
 export interface Presupuesto {
   id: string;
+  nombreCliente: string;
+  ubicacionCliente: string;
+  obraCliente: string;
+  productos: ProductoSeleccionado[];
   fecha: string;
-  usuario: string;
-
-  cliente: string;
-  ubicacion: string;
-  obra: string;
-  
-  productos: string;
-  total: number;
+  autor: string;
 }
+

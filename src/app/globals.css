@@ -537,7 +537,15 @@ canvas#graficoPresupuestos {
   transform: translateY(-3px);
 }
 
-
+.label-mano-obra {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem; /* espacio entre texto e input */
+}
+.cantidad-input {
+  width: 400px; /* ancho razonable en desktop */
+  margin-left: 10px;
+}
 
 
 
@@ -582,6 +590,18 @@ canvas#graficoPresupuestos {
     width: 90%;             /* Que cada uno ocupe todo el ancho */
   }
 
+  .label-mano-obra {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* que texto y input queden alineados a la izquierda */
+  }
+
+  /* Para que el input ocupe más ancho en móvil */
+  .label-mano-obra input.cantidad-input {
+    margin-left: 0 !important; /* quitar el margin-left que tenés inline */
+    width: 100% !important; /* que ocupe todo el ancho */
+    margin-top: 0.5rem;
+  }
 
     .botones {
     align-items: center; /* centrar los botones */

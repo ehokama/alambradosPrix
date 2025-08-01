@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { obtenerDocumentosDeColeccion } from "@/app/utils/firestoreUtils";
+import { obtenerDocumentosDeColeccionCantidad } from "@/app/utils/firestoreUtils";
 import { Actualizacion } from "@/types/productos";
 
 export default function ActualizacionesList() {
@@ -7,7 +7,7 @@ export default function ActualizacionesList() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const datos = await obtenerDocumentosDeColeccion<Actualizacion>("actualizaciones");
+      const datos = await obtenerDocumentosDeColeccionCantidad<Actualizacion>("actualizaciones",5);
       setActualizaciones(datos);
     };
     fetchData();

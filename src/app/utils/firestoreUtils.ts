@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit  } from 'firebase/firestore';
 import { db } from "@/firebase/config"
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 
@@ -7,6 +7,26 @@ export async function obtenerDocumentosDeColeccion<T>(
 ): Promise<(T & { id: string })[]> {
   const coleccionRef = collection(db, nombreColeccion);
   const snapshot = await getDocs(coleccionRef);
+
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...(doc.data() as T),
+  }));
+}
+
+export async function obtenerDocumentosDeColeccionCantidad<T>(
+  nombreColeccion: string,
+  cantidad?: number
+): Promise<(T & { id: string })[]> {
+  const coleccionRef = collection(db, nombreColeccion);
+
+  // Crear consulta con orden y límite
+  let q = query(coleccionRef, orderBy("fecha", "desc"));
+  if (cantidad) {
+    q = query(coleccionRef, orderBy("fecha", "desc"), limit(cantidad));
+  }
+
+  const snapshot = await getDocs(q);
 
   return snapshot.docs.map(doc => ({
     id: doc.id,

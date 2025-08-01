@@ -1,11 +1,15 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/firebase/config";
 
 export default function PresupuestoChart() {
-  const chartInstance = useRef<Chart | null>(null);
-
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const chartRef = useRef<Chart | null>(null);
+  const [cantidades, setCantidades] = useState<number[]>([]);
+  const [meses, setMeses] = useState<string[]>([]);
 
   const getUltimos3Meses = (): string[] => {
     const meses: string[] = [];
@@ -13,34 +17,59 @@ export default function PresupuestoChart() {
     const fecha = new Date();
     for (let i = 2; i >= 0; i--) {
       const f = new Date(fecha.getFullYear(), fecha.getMonth() - i, 1);
-      meses.push(formatter.format(f).charAt(0).toUpperCase() + formatter.format(f).slice(1));
+      meses.push(formatter.format(f));
     }
     return meses;
   };
 
-
-
   useEffect(() => {
-    const ctx = document.getElementById('graficoPresupuestos') as HTMLCanvasElement | null;
-    if (!ctx) return;
+    async function fetchDatos() {
+      const fecha = new Date();
+      const año = fecha.getFullYear();
+      const mesesCalc = getUltimos3Meses();
+      const mesesMinuscula = mesesCalc.map(m => m.toLowerCase());
 
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
+      const ref = doc(db, "metricas", `cantidadPresupuestos20${año.toString().slice(-2)}`);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        console.log("No existe documento para el año actual.");
+        return;
+      }
+
+      const data = snap.data();
+      const cantidadPorMes = data?.cantidadPorMes || {};
+      const cantidadesCalc = mesesMinuscula.map(mes => cantidadPorMes[mes] || 0);
+
+      setMeses(mesesCalc);
+      setCantidades(cantidadesCalc);
+
+      console.log("Meses:", mesesCalc);
+      console.log("Cantidades reales últimos 3 meses:", cantidadesCalc);
     }
 
-    const labels = getUltimos3Meses();
+    fetchDatos();
+  }, []);
 
-    chartInstance.current = new Chart(ctx, {
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    if (chartRef.current) {
+      chartRef.current.destroy();
+      chartRef.current = null;
+    }
+    if (cantidades.length === 0 || meses.length === 0) return;
+
+    chartRef.current = new Chart(canvasRef.current, {
       type: 'bar',
       data: {
-        labels,
+        labels: meses,
         datasets: [{
-          label: 'Cantidad de Presupuestos',
-          data: [12, 19, 23],
+          label: 'Presupuestos por mes',
+          data: cantidades,
           backgroundColor: 'rgba(11, 135, 73, 0.7)',
           borderColor: 'rgba(11, 135, 73, 1)',       
           borderWidth: 1
-        }]
+        }],
       },
       options: {
         responsive: true,
@@ -59,15 +88,9 @@ export default function PresupuestoChart() {
       }
     });
 
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-        chartInstance.current = null;
-      }
-    };
-  }, []);
+  }, [cantidades, meses]);
 
   return (
-    <canvas id="graficoPresupuestos" />
+    <canvas ref={canvasRef} id="graficoPresupuestos"></canvas>
   );
 }
