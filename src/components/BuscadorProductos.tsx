@@ -170,8 +170,25 @@ const itemManoDeObra: ProductoSeleccionado = {
             </div>
           {seleccionados.length > 0 && (
             <div className="botones">
-              <button className="boton-descargar" onClick={() => generarInformativoPDF(nombreCliente, [...seleccionados, itemManoDeObra], ubicacionCliente, obraCliente)}>Descargar PDF Informativo</button>
-              <button className="boton-descargar" onClick={() => generarTipoFacturaPDF(nombreCliente, [...seleccionados, itemManoDeObra], ubicacionCliente, obraCliente)}>Descargar PDF Tipo Factura</button>
+              <button
+  className="boton-descargar"
+  onClick={async () => {
+    await generarInformativoPDF(nombreCliente, [...seleccionados, itemManoDeObra], ubicacionCliente, obraCliente);
+    limpiar();
+  }}
+>
+  Descargar PDF Informativo
+</button>
+
+<button
+  className="boton-descargar"
+  onClick={async () => {
+    await generarTipoFacturaPDF(nombreCliente, [...seleccionados, itemManoDeObra], ubicacionCliente, obraCliente);
+    limpiar();
+  }}
+>
+  Descargar PDF Tipo Factura
+</button>
               <button className="boton-limpiar" onClick={limpiar}>Limpiar</button>
             </div>
           )}

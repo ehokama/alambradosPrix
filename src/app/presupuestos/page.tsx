@@ -9,8 +9,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Presupuesto } from '@/types/productos';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { generarTipoFacturaPDF } from '@/components/DescargarTipoFacturaPDF';
-
+import { generarTipoFacturaPDF} from '@/components/DescargarTipoFacturaPDF';
+import { generarInformativoPDF} from '@/components/DescargarInformativoPDF';
 
 export default function PresupuestosPage() {
   const router = useRouter();
@@ -154,7 +154,11 @@ export default function PresupuestosPage() {
                       </div>
           
             <button className="boton-descargar" style={{ marginLeft: '20px', marginTop:'10px' }} onClick={() => generarTipoFacturaPDF(p.nombreCliente, p.productos, p.ubicacionCliente, p.obraCliente, false)}>
-              Ver Detalle
+              Descargar PDF Tipo Factura
+            </button>
+                      
+            <button className="boton-descargar" style={{ marginLeft: '20px', marginTop:'10px' }} onClick={() => generarInformativoPDF(p.nombreCliente, p.productos, p.ubicacionCliente, p.obraCliente, false)}>
+              Descargar PDF Informativo
             </button>
         </div>
       ))}
