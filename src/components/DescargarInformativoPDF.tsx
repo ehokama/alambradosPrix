@@ -21,141 +21,150 @@ export async function generarInformativoPDF(
   seleccionados: ProductoSeleccionado[],
   ubicacionCliente: string,
   obraCliente: string,
-  guardarEnBD: boolean = true 
+  guardarEnBD: boolean = true
 ) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const fechaStr = new Date().toISOString().slice(0, 10);
   const autor = auth.currentUser?.displayName || auth.currentUser?.email || "usuario_desconocido";
 
-    let numeroPresupuesto: string;
+  let numeroPresupuesto: string;
   if (guardarEnBD) {
-    numeroPresupuesto = await obtenerNuevoNumeroPresupuesto(); // actualiza contador y devuelve nuevo número
-  }else {
-    // Si no hay número, podemos intentar obtener el último o poner uno por defecto
+    numeroPresupuesto = await obtenerNuevoNumeroPresupuesto();
+  } else {
     const ultimoNumero = await obtenerUltimoNumeroPresupuesto();
     numeroPresupuesto = ultimoNumero || "0";
   }
 
+const totalFinal = seleccionados.reduce((total, producto) => {
+  if (producto.tipo === "Porton" || producto.tipo === "Puerta") {
+    return total + producto.precioUnitario * producto.cantidad;
+  }
 
-  //  total
-  const totalFinal = seleccionados.reduce((total, producto) => {
-    if (producto.tipo === "Porton" || producto.tipo === "Puerta") {
-      return total + producto.precioUnitario * producto.cantidad;
-    }
-    if (producto.tipo === "Poste") {
-      return total + (((producto.precioUnitario * (1 - producto.bonificacion)) * (1 + producto.recargo)) * (1 + producto.margenGanancia)) * producto.cantidad;
-    } else {
-      return total + ((((producto.precioUnitario * (1 - producto.bonificacion)) * 1.21 * (1 + producto.recargo)) * (1 + producto.margenGanancia)) * producto.cantidad);
-    }
-  }, 0);
+  if (producto.tipo === "Poste") {
+    return (
+      total +
+      ((producto.precioUnitario * (1 - producto.bonificacion)) *
+        (1 + producto.recargo) *
+        (1 + producto.margenGanancia)) *
+        producto.cantidad
+    );
+  }
 
-  autoTable(doc, {
-    startY: 80,
-    margin: { top: 75, left: 10, right: 10 },
-    head: [["Descripción", "Cantidad", "Precio unitario", "Total"]],
-    body: seleccionados.map(producto => [
-      producto.nombre,
-      producto.cantidad.toString(),
-      `$${producto.precioUnitario.toFixed(2)}`,
-      `$${(((((producto.precioUnitario * (1 - producto.bonificacion)) * 1.21 * (1 + producto.recargo)) * (1 + producto.margenGanancia)) * producto.cantidad)).toFixed(2)}`
-    ]),
-    foot: [[
-      { content: '', colSpan: 2 },
-      { content: 'TOTAL', styles: { halign: 'right', fontStyle: 'bold' } },
-      { content: `$${totalFinal.toFixed(2)}`, styles: { halign: 'left', fontStyle: 'bold' } }
-    ]],
-    styles: {
-      fontSize: 10,
-      cellPadding: 3,
-    },
-    headStyles: {
-      fillColor: [245, 245, 245],
-      textColor: 0,
-      fontStyle: 'bold',
-    },
-    bodyStyles: {
-      fillColor: [255, 255, 255],
-    },
-    alternateRowStyles: {
-      fillColor: [255, 255, 255],
-    },
-    footStyles: {
-      fillColor: [220, 220, 220],
-      textColor: 0,
-      fontStyle: 'bold',
-    },
-    didDrawPage: (data) => {
-      const margen = 10;
-      const disponible = pageWidth - (margen * 2);
-      const alturaHeader = 40;
-      const startY = 5;
-      const largeColumn = (45 * disponible) / 100;
-      const shortColumn = (10 * disponible) / 100;
-      const col2X = margen + largeColumn;
-      const col3X = margen + largeColumn + shortColumn;
+  if (producto.tipo === "ManoDeObra") {
+    return total + producto.precioUnitario * producto.cantidad;
+  }
 
-      // Imagen y encabezado
-      const imgWidth = (45 * disponible) / 100;
-      const imgHeight = imgWidth * (688 / 1555);
-      doc.addImage(imgData, "PNG", 10, 5, imgWidth, imgHeight);
+  // Para otros productos (ej. "Malla", "Alambre", etc.)
+  return (
+    total +
+    (((producto.precioUnitario * (1 - producto.bonificacion)) *
+      1.21 *
+      (1 + producto.recargo)) *
+      (1 + producto.margenGanancia)) *
+      producto.cantidad
+  );
+}, 0);
 
-      doc.setFont("helvetica");
-      doc.setFontSize(20);
-      doc.setTextColor(100);
-      doc.text("X", col2X + shortColumn / 2, startY + alturaHeader / 2, { align: "center", baseline: "middle" });
 
-      doc.setDrawColor(100).setLineWidth(0.5);
-      const centerX = col2X + shortColumn / 2;
-      const centerY = startY + alturaHeader / 2;
-      const size = 10;
-      doc.rect(centerX - size / 2, centerY - size / 2, size, size, "S");
+  const margen = 10;
+  const disponible = pageWidth - margen * 2;
+  const alturaHeader = 40;
+  const startY = 5;
+  const largeColumn = (45 * disponible) / 100;
+  const shortColumn = (10 * disponible) / 100;
+  const col2X = margen + largeColumn;
+  const col3X = margen + largeColumn + shortColumn;
 
-      doc.setFontSize(10);
-      doc.text("DOCUMENTO NO VALIDO COMO FACTURA", col3X + 5, 18, { baseline: "middle" });
+  const imgWidth = (45 * disponible) / 100;
+  const imgHeight = imgWidth * (688 / 1555);
+  doc.addImage(imgData, "PNG", 10, 5, imgWidth, imgHeight);
 
-      doc.text(`PRESUPUESTO N°${numeroPresupuesto}`, col3X + 5, 25, { baseline: "middle" });
+  doc.setFont("helvetica");
+  doc.setFontSize(20);
+  doc.setTextColor(100);
+  doc.text("X", col2X + shortColumn / 2, startY + alturaHeader / 2, { align: "center", baseline: "middle" });
 
-      const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' } as const;
-      const fechaFormateada = new Date().toLocaleDateString('es-ES', opciones).toUpperCase();
-      doc.text(fechaFormateada, col3X + 5, 32, { baseline: "middle" });
+  doc.setDrawColor(100).setLineWidth(0.5);
+  const centerX = col2X + shortColumn / 2;
+  const centerY = startY + alturaHeader / 2;
+  const size = 10;
+  doc.rect(centerX - size / 2, centerY - size / 2, size, size, "S");
 
-      doc.setTextColor(0);
-      doc.text("Camino General Belgrano 707 - (1886) - Bernal Oeste", 10, 50, { baseline: "middle" });
-      doc.text("Tel: 011-1163-1551", pageWidth - 10, 50, { align: "right", baseline: "middle" });
+  doc.setFontSize(10);
+  doc.text("DOCUMENTO NO VALIDO COMO FACTURA", col3X + 5, 18, { baseline: "middle" });
+  doc.text(`PRESUPUESTO N°${numeroPresupuesto}`, col3X + 5, 25, { baseline: "middle" });
 
-      doc.text("CUIT: 23-28746558-7", 10, 55, { baseline: "middle" });
-      doc.text("alambradosprix@gmail.com", pageWidth - 10, 55, { align: "right", baseline: "middle" });
+  const opciones = { weekday: "long", day: "numeric", month: "long", year: "numeric" } as const;
+  const fechaFormateada = new Date().toLocaleDateString("es-ES", opciones).toUpperCase();
+  doc.text(fechaFormateada, col3X + 5, 32, { baseline: "middle" });
 
-      doc.setDrawColor(180);
-      doc.line(10, 60, pageWidth - 10, 60);
-      doc.line(10, 45, pageWidth - 10, 45);
+  doc.setTextColor(0);
+  doc.text("Camino General Belgrano 707 - (1886) - Bernal Oeste", 10, 50, { baseline: "middle" });
+  doc.text("Tel: 011-1163-1551", pageWidth - 10, 50, { align: "right", baseline: "middle" });
 
-      doc.setFont("helvetica", "bold");
-      doc.text("Cliente:", 10, 65);
-      doc.setFont("helvetica", "normal");
-      doc.text(nombreCliente, 25, 65);
+  doc.text("CUIT: 23-28746558-7", 10, 55, { baseline: "middle" });
+  doc.text("alambradosprix@gmail.com", pageWidth - 10, 55, { align: "right", baseline: "middle" });
 
-      doc.setFont("helvetica", "bold");
-      doc.text("Obra:", 10, 70);
-      doc.setFont("helvetica", "normal");
-      doc.text(obraCliente, 22.5, 70);
+  doc.setDrawColor(180);
+  doc.line(10, 60, pageWidth - 10, 60);
+  doc.line(10, 45, pageWidth - 10, 45);
+  doc.line(10, 80, pageWidth - 10, 80);
 
-      doc.setFont("helvetica", "bold");
-      doc.text("Ubicación:", 10, 75);
-      doc.setFont("helvetica", "normal");
-      doc.text(ubicacionCliente, 30, 75);
-    }
-  });
+  doc.setFont("helvetica", "bold");
+  doc.text("Cliente:", 10, 65);
+  doc.setFont("helvetica", "normal");
+  doc.text(nombreCliente, 25, 65);
 
-  const finalY = (doc as jsPDFWithAutoTable).lastAutoTable?.finalY || 0;
+  doc.setFont("helvetica", "bold");
+  doc.text("Obra:", 10, 70);
+  doc.setFont("helvetica", "normal");
+  doc.text(obraCliente, 22.5, 70);
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Ubicación:", 10, 75);
+  doc.setFont("helvetica", "normal");
+  doc.text(ubicacionCliente, 30, 75);
+
+  doc.setFont("helvetica", "normal");
+  doc.text("Tenemos el agrado de hacerles llegar el siguiente presupuesto:", 10, 85);
+
+  const productosDescripcion = seleccionados.map(p => `${p.nombre} (${p.cantidad})`).join(", ");
+  const textoObra = doc.splitTextToSize(
+    `La obra a realizarse incluye provisión y colocamiento de: ${productosDescripcion}`,
+    pageWidth - 20
+  );
+  doc.text(textoObra, 10, 90);
+
+  const alturaDetalle = 90 + textoObra.length * 5;
+  let yActual = alturaDetalle + 10;
+
+  doc.setFont("helvetica", "bold");
+  doc.text(`TOTAL: $${totalFinal.toFixed(2)}`, 10, yActual);
+  yActual += 8;
+
+  doc.text("Condiciones comerciales:", 10, yActual);
+  yActual += 6;
+
+  doc.setFont("helvetica", "normal");
+  doc.text("PRECIOS: NETO + IVA", 10, yActual);
+  yActual += 5;
+
+  doc.text("CONDICIONES DE PAGO: Anticipo del 70% Saldo al finalizar", 10, yActual);
+  yActual += 10;
+
+  doc.text("Aprovecho la oportunidad para saludarlo muy atentamente,", 10, yActual);
+  yActual += 6;
+
+  doc.text("Juan Manuel Nuñez", 10, yActual);
+  yActual += 10;
 
   doc.setFontSize(10);
   doc.setTextColor(100);
   doc.text(
     "Los precios son de referencia al momento de la creación del presupuesto y podrán ser ajustados, sin previo aviso (la fecha es especificada en el encabezado de este documento).",
     14,
-    finalY + 10,
+      yActual += 15,
     { maxWidth: 180 }
   );
 
@@ -177,8 +186,6 @@ export async function generarInformativoPDF(
       autor,
     });
   }
-    doc.save(`presupuesto_${numeroPresupuesto}_${nombreCliente}_${fechaStr}.pdf`);
-  }
 
-
-
+  doc.save(`presupuesto_${numeroPresupuesto}_${nombreCliente}_${fechaStr}.pdf`);
+}
